@@ -11,6 +11,7 @@ import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
 import dev.wasdevv.minierp.model.Product;
+import dev.wasdevv.minierp.repository.SaleItemRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -28,6 +29,9 @@ class ProductServiceTest {
 
     @Mock
     private ProductRepository products;
+
+    @Mock
+    private SaleItemRepository saleItems;
 
     @InjectMocks
     private ProductService service;

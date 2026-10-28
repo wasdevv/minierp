@@ -15,40 +15,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.repository.ProductRepository;
-import dev.wasdevv.minierp.support.RequiresDatabase;
-import dev.wasdevv.minierp.support.TestDatabase;
+import dev.wasdevv.minierp.support.IntegrationTest;
 import java.math.BigDecimal;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
 
-@ExtendWith(RequiresDatabase.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-class ProductControllerIntegrationTest {
-
-    @DynamicPropertySource
-    static void database(DynamicPropertyRegistry registry) {
-        TestDatabase.register(registry);
-    }
-
-    @Autowired
-    private MockMvc mvc;
+class ProductControllerIntegrationTest extends IntegrationTest {
 
     @Autowired
     private ProductRepository products;
-
-    @BeforeEach
-    void cleanDatabase() {
-        products.deleteAll();
-    }
 
     @Test
     void rootRedirectsToProducts() throws Exception {

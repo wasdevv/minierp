@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import dev.wasdevv.minierp.dto.CustomerForm;
 import dev.wasdevv.minierp.exception.DuplicateDocumentException;
 import dev.wasdevv.minierp.model.Customer;
+import dev.wasdevv.minierp.repository.SaleRepository;
 import dev.wasdevv.minierp.repository.CustomerRepository;
 import java.sql.SQLException;
 import java.util.Optional;
@@ -26,6 +27,9 @@ class CustomerServiceTest {
 
     @Mock
     private CustomerRepository customers;
+
+    @Mock
+    private SaleRepository sales;
 
     @InjectMocks
     private CustomerService service;

@@ -29,11 +29,11 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 - [x] Validação de campos obrigatórios e dados inválidos (produtos e clientes).
 
 ### Vendas e estoque
-- [ ] Registrar uma venda com um ou mais itens.
-- [ ] Calcular subtotal e total no servidor.
+- [x] Registrar uma venda com um ou mais itens.
+- [x] Calcular subtotal e total no servidor.
 - [ ] Atualizar o estoque ao confirmar uma venda.
 - [ ] Impedir vendas com quantidade maior que o estoque disponível.
-- [ ] Registrar data, itens, quantidades e preços praticados na venda.
+- [x] Registrar data, itens, quantidades e preços praticados na venda.
 - [ ] Garantir consistência transacional entre venda e estoque.
 
 ### Relatórios
@@ -114,20 +114,22 @@ src/
 - `document`: CPF ou CNPJ opcional, com dígitos verificadores conferidos, gravado só com números e único quando informado. A listagem mostra o documento mascarado (`***.982.247-**`), e a busca só o encontra pelo número completo, para não permitir enumerar documentos por fragmentos.
 - `created_at` e `updated_at`: datas de auditoria.
 
-### `sales`
+### `sales` (implementado em `V3__create_sales.sql`)
 - `id`: identificador.
-- `customer_id`: cliente associado, se aplicável.
+- `customer_id`: cliente associado; vazio para consumidor final.
 - `sale_date`: data e hora da venda.
 - `total_amount`: total calculado pelo backend.
-- `status`: estado da venda, se houver fluxo de status.
+- `status`: não implementado. A venda nasce confirmada e não é editada nem excluída; cancelamento ainda não existe.
 
-### `sale_items`
+### `sale_items` (implementado em `V3__create_sales.sql`)
 - `id`: identificador.
 - `sale_id`: venda associada.
 - `product_id`: produto vendido.
 - `quantity`: quantidade vendida.
 - `unit_price`: preço unitário registrado no momento da venda.
-- `subtotal`: subtotal do item.
+- `subtotal`: subtotal do item; o banco confere `subtotal = unit_price * quantity`.
+
+Linhas repetidas do mesmo produto são somadas numa só (`UNIQUE (sale_id, product_id)`). Produto já vendido e cliente com vendas não podem ser excluídos: o produto é retirado das vendas desmarcando "Ativo", e só produtos ativos aparecem na tela de venda.
 
 Em `products`, preço e estoque negativos são barrados pela validação do formulário e também por `CHECK` no banco; o SKU único é garantido por constraint, não só pela checagem prévia. Use `BigDecimal` para valores monetários em Java, evitando `float` ou `double` para cálculos financeiros.
 
@@ -267,7 +269,7 @@ MINIERP_TEST_DB_USER=postgres MINIERP_TEST_DB_PASSWORD=... ./mvnw test
 
 O banco de teste é limpo antes de cada teste: não aponte para um banco com dados que importam.
 
-Casos importantes para cobrir (os de produtos e clientes já estão cobertos):
+Casos importantes para cobrir (os de produtos, clientes e do registro de vendas já estão cobertos; os de estoque entram com a baixa transacional):
 
 - Criar, editar, consultar e excluir produtos.
 - Rejeitar preço negativo e quantidade inválida.
@@ -297,7 +299,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 
 - [x] Implementar CRUD de produtos.
 - [x] Implementar CRUD de clientes.
-- [ ] Implementar fluxo de vendas.
+- [x] Implementar fluxo de vendas.
 - [ ] Implementar baixa transacional de estoque.
 - [ ] Criar relatório de vendas em PDF.
 - [ ] Adicionar testes unitários e de integração.

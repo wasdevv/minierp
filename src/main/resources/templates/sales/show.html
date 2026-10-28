@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Venda #' + ${sale.id})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('sales')}"></header>
+<main>
+    <div class="page-header">
+        <div>
+            <h1 th:text="|Venda #${sale.id}|">Venda #1</h1>
+            <p class="subtitle">
+                <span th:text="${sale.customer} ? ${sale.customer.name} : 'Consumidor final'">Cliente</span>
+                ·
+                <span th:text="${#temporals.format(sale.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+            </p>
+        </div>
+        <a class="button" th:href="@{/sales/new}">Nova venda</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>SKU</th>
+            <th>Produto</th>
+            <th class="num">Preço unitário</th>
+            <th class="num">Quantidade</th>
+            <th class="num">Subtotal</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="item : ${sale.items}">
+            <td th:text="${item.product.sku}">SKU</td>
+            <td th:text="${item.product.name}">Produto</td>
+            <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(item.unitPrice, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            <td class="num" th:text="${item.quantity}">1</td>
+            <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+        </tr>
+        </tbody>
+        <tfoot>
+        <tr>
+            <td colspan="4" class="num">Total</td>
+            <td class="num total" th:text="${'R$ ' + #numbers.formatDecimal(sale.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+        </tr>
+        </tfoot>
+    </table>
+    <p class="muted"><a th:href="@{/sales}">← Voltar para vendas</a></p>
+</main>
+</body>
+</html>
