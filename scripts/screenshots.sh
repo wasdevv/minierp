@@ -38,14 +38,14 @@ login "$BASE" admin "$ADMIN_PASSWORD"
 while IFS='|' read -r name sku price stock; do
     post /products --data-urlencode "name=$name" -d "sku=$sku&price=$price&stockQuantity=$stock&active=true" > /dev/null
 done <<'DATA'
-Caneta esferográfica azul|CN-AZ|2.50|240
-Caderno universitário 96 folhas|CD-96|14.90|60
-Lápis grafite HB|LP-HB|1.20|500
-Mochila escolar|MC-01|129.00|12
-Borracha branca|BR-01|0.90|300
-Marca-texto amarelo|MT-AM|4.75|8
-Régua 30 cm|RG-30|3.40|90
-Estojo duplo|ES-02|39.90|25
+Caneta esferográfica azul|CN-AZ|2.50|400
+Caderno universitário 96 folhas|CD-96|14.90|160
+Lápis grafite HB|LP-HB|1.20|700
+Mochila escolar|MC-01|129.00|20
+Borracha branca|BR-01|0.90|400
+Marca-texto amarelo|MT-AM|4.75|30
+Régua 30 cm|RG-30|3.40|140
+Estojo duplo|ES-02|39.90|40
 DATA
 post /products --data-urlencode "name=Agenda 2025" -d "sku=AG-25&price=24.90&stockQuantity=0&_active=on" > /dev/null
 
@@ -75,10 +75,29 @@ done <<'DATA'
 2 8:1 6:2
 4 1:4 2:1 5:3
 0 6:4
+1 2:3 1:6
+0 3:10 5:4
+3 1:40 2:12 7:10
+4 8:2
+0 1:3 6:2
+2 4:1 2:4
+5 2:40 3:80 1:50
+0 1:1
+1 7:2 5:2
+3 6:6 3:30
+0 2:1
+4 4:2 8:1
+0 6:12
+2 1:5 2:2 3:8
 DATA
 
+# Spread the sales over the last 14 days so the dashboard chart has a shape; sale 3 stays today.
+psql "${psql_args[@]}" -d "$DB" -c "UPDATE sales SET sale_date = sale_date - ((id * 5) % 14) * interval '1 day' - (id % 5) * interval '2 hours' WHERE id <> 3"
+post /sales/6/cancel --data-urlencode "reason=Cliente desistiu da compra" > /dev/null
+
 # Every POST above left a "saved" notice in the session for the page it redirects to; consume them.
-for path in /products /customers $(seq -f '/sales/%g' 1 7); do page "$path" > /dev/null; done
+# Spring hands out one notice per visit, and a sale can hold two (registered, then cancelled).
+for path in /products /customers $(seq -f '/sales/%g' 1 21) $(seq -f '/sales/%g' 1 21); do page "$path" > /dev/null; done
 
 # Pages need the session, which Chrome does not have: save each page's HTML with curl and render the file,
 # with a <base> so that the stylesheet still comes from the app (static files are public).
@@ -89,9 +108,13 @@ shot() {  # path file width height
 }
 today=$(date +%F)
 month=$(date +%Y-%m-01)
+shot / dashboard.png 1280 1180
+shot / dashboard-mobile.png 390 1700
 shot /products products.png 1280 860
+shot "/products?filter=low-stock" products-low-stock.png 1280 560
+shot /sales/6 sale-cancelled.png 1280 640
 shot /customers customers.png 1280 720
-shot /sales sales.png 1280 860
+shot /sales sales.png 1280 1000
 shot /sales/2 sale-detail.png 1280 720
 # The filled sale form only exists as a POST response.
 curl -sf -b "$JAR" -X POST "$BASE/sales" -d "_csrf=$CSRF&customerId=1&addItem=1" \

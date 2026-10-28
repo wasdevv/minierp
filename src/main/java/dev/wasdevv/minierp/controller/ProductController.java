@@ -1,9 +1,11 @@
 package dev.wasdevv.minierp.controller;
 
+import dev.wasdevv.minierp.dto.ProductFilter;
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.StaleProductException;
+import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -27,8 +29,6 @@ public class ProductController {
 
     private static final String FORM = "products/form";
     private static final Sort LIST_ORDER = Sort.by("name", "id");
-    /** At or below this quantity the list flags the stock as low. */
-    static final int LOW_STOCK = 10;
 
     private final ProductService service;
 
@@ -38,13 +38,17 @@ public class ProductController {
 
     @GetMapping
     public String list(@RequestParam(name = "q", required = false) String query,
+                       @RequestParam(name = "filter", required = false) String filterParam,
                        @PageableDefault(size = 10) Pageable pageable,
                        Model model) {
         // Sorting is fixed: a client-supplied ?sort= on an unknown property would otherwise be a 500.
         Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), LIST_ORDER);
-        model.addAttribute("page", service.search(query, page));
+        ProductFilter filter = ProductFilter.fromParam(filterParam);
+        model.addAttribute("page", service.search(query, filter, page));
         model.addAttribute("q", query == null ? "" : query.strip());
-        model.addAttribute("lowStock", LOW_STOCK);
+        model.addAttribute("filter", filter);
+        model.addAttribute("filters", ProductFilter.values());
+        model.addAttribute("lowStock", Product.LOW_STOCK);
         return "products/list";
     }
 

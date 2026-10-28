@@ -2,6 +2,7 @@ package dev.wasdevv.minierp.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.not;
 import static org.hamcrest.Matchers.startsWith;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -166,7 +167,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Caneta · CN-01 · R$ 2,50")))
                 .andExpect(content().string(not(containsString("Caneta antiga"))))
-                .andExpect(content().string(containsString("aria-current=\"page\">Vendas")));
+                .andExpect(content().string(matchesRegex("(?s).*aria-current=\"page\">[^\\n]*?<span>Vendas</span>.*")));
     }
 
     @Test

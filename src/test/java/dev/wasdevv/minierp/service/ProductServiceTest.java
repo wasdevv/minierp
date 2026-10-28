@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import dev.wasdevv.minierp.dto.ProductFilter;
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.InUseException;
@@ -133,14 +134,28 @@ class ProductServiceTest {
 
     @Test
     void searchEscapesLikeWildcards() {
-        service.search("  50%_off\\ ", Pageable.unpaged());
+        service.search("  50%_off\\ ", ProductFilter.ALL, Pageable.unpaged());
 
-        verify(products).search("50\\%\\_off\\\\", Pageable.unpaged());
+        verify(products).search("50\\%\\_off\\\\", false, Product.LOW_STOCK, false, Pageable.unpaged());
+    }
+
+    @Test
+    void filterWithoutSearchTermStillFilters() {
+        service.search(null, ProductFilter.LOW_STOCK, Pageable.unpaged());
+
+        verify(products).search("", true, Product.LOW_STOCK, false, Pageable.unpaged());
+    }
+
+    @Test
+    void unknownFilterParamMeansAll() {
+        assertThat(ProductFilter.fromParam("drop table")).isEqualTo(ProductFilter.ALL);
+        assertThat(ProductFilter.fromParam(null)).isEqualTo(ProductFilter.ALL);
+        assertThat(ProductFilter.fromParam("inactive")).isEqualTo(ProductFilter.INACTIVE);
     }
 
     @Test
     void blankSearchListsEverything() {
-        service.search("  ", Pageable.unpaged());
+        service.search("  ", ProductFilter.ALL, Pageable.unpaged());
 
         verify(products).findAll(Pageable.unpaged());
     }

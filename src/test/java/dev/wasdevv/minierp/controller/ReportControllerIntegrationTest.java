@@ -2,6 +2,7 @@ package dev.wasdevv.minierp.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
@@ -64,7 +65,7 @@ class ReportControllerIntegrationTest extends IntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("name=\"from\" value=\"")))
                 .andExpect(content().string(containsString("Baixar PDF")))
-                .andExpect(content().string(containsString("aria-current=\"page\">Relatórios")));
+                .andExpect(content().string(matchesRegex("(?s).*aria-current=\"page\">[^\\n]*?<span>Relatórios</span>.*")));
     }
 
     @Test

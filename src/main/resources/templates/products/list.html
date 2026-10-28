@@ -15,15 +15,24 @@
     <div th:replace="~{fragments/layout :: notice}"></div>
 
     <form class="search" method="get" th:action="@{/products}" role="search">
+        <input type="hidden" name="filter" th:value="${filter.param}" th:unless="${filter.name() == 'ALL'}">
         <input type="search" name="q" th:value="${q}" placeholder="Buscar por nome ou SKU" aria-label="Buscar produtos">
         <button type="submit">Buscar</button>
         <a th:if="${!#strings.isEmpty(q)}" th:href="@{/products}">Limpar</a>
     </form>
 
-    <p th:if="${page.empty}" class="empty"
-       th:text="${#strings.isEmpty(q)} ? 'Nenhum produto cadastrado.' : 'Nenhum produto encontrado para a busca.'">
-        Nenhum produto cadastrado.
-    </p>
+    <nav class="chips" aria-label="Filtrar produtos">
+        <a th:each="f : ${filters}" th:href="@{/products(q=${#strings.isEmpty(q)} ? null : ${q}, filter=${f.name() == 'ALL'} ? null : ${f.param})}"
+           th:attr="aria-current=${f == filter} ? 'true' : null"
+           th:text="${f.name() == 'ALL'} ? 'Todos' : (${f.name() == 'LOW_STOCK'} ? |Estoque baixo (até ${lowStock})| : 'Inativos')">Todos</a>
+    </nav>
+
+    <div th:if="${page.empty}" class="empty">
+        <strong th:text="${#strings.isEmpty(q) and filter.name() == 'ALL'} ? 'Nenhum produto cadastrado ainda.' : 'Nenhum produto encontrado.'">Nenhum produto</strong>
+        <span th:if="${#strings.isEmpty(q) and filter.name() == 'ALL'}">Cadastre o primeiro produto para começar a vender.</span>
+        <span th:unless="${#strings.isEmpty(q) and filter.name() == 'ALL'}">Tente outra busca ou outro filtro.</span>
+        <a th:if="${#strings.isEmpty(q) and filter.name() == 'ALL'}" class="button" th:href="@{/products/new}">Novo produto</a>
+    </div>
 
     <table th:unless="${page.empty}">
         <thead>
@@ -61,9 +70,9 @@
     </table>
 
     <nav class="pagination" th:if="${page.totalPages > 1}" aria-label="Paginação">
-        <a th:if="${page.hasPrevious()}" th:href="@{/products(q=${q}, page=${page.number - 1})}">Anterior</a>
+        <a th:if="${page.hasPrevious()}" th:href="@{/products(q=${q}, filter=${filter.param}, page=${page.number - 1})}">Anterior</a>
         <span th:text="|Página ${page.number + 1} de ${page.totalPages}|">Página 1 de 1</span>
-        <a th:if="${page.hasNext()}" th:href="@{/products(q=${q}, page=${page.number + 1})}">Próxima</a>
+        <a th:if="${page.hasNext()}" th:href="@{/products(q=${q}, filter=${filter.param}, page=${page.number + 1})}">Próxima</a>
     </nav>
     <p class="muted" th:unless="${page.empty}" th:text="|${page.totalElements} produto(s)|">0 produto(s)</p>
 </main>

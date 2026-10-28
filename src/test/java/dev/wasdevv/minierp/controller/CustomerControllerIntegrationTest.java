@@ -3,6 +3,7 @@ package dev.wasdevv.minierp.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.matchesRegex;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -193,7 +194,7 @@ class CustomerControllerIntegrationTest extends IntegrationTest {
                 .andExpect(content().string(containsString("**.222.333/0001-**")))
                 .andExpect(content().string(not(containsString("529.982.247-25"))))
                 .andExpect(content().string(not(containsString(CPF))))
-                .andExpect(content().string(containsString("aria-current=\"page\">Clientes")))
+                .andExpect(content().string(matchesRegex("(?s).*aria-current=\"page\">[^\\n]*?<span>Clientes</span>.*")))
                 .andExpect(content().string(containsString("3 cliente(s)")));
     }
 

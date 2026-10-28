@@ -306,7 +306,7 @@ MINIERP_TEST_JDBC_URL=jdbc:postgresql://localhost:5432/mini_erp_test ./mvnw veri
 
 Sem o banco de teste, os testes de integração são pulados, a cobertura cai abaixo do mínimo e o `verify` falha. Isso é intencional: suíte sem integração não conta como verde.
 
-Medido em 27/10/2026 (JDK 21, PostgreSQL 18 local): 150 testes, **97,7% das linhas** (630/645) e **94,4% dos branches** (218/231).
+Medido em 27/10/2026 (JDK 21, PostgreSQL 18 local): 178 testes, **98,0% das linhas** (751/766) e **93,2% dos branches** (260/279).
 
 Casos importantes para cobrir (os de produtos, clientes, vendas e estoque já estão cobertos; faltam os de relatório):
 
@@ -357,11 +357,17 @@ Rotas, parâmetros e respostas, o fluxo de venda com baixa de estoque (com diagr
 
 Capturas reais da aplicação, com dados fictícios. Para gerar de novo: `scripts/screenshots.sh`, com as variáveis no cabeçalho do script. Ele recria um banco descartável, cadastra os dados pelos próprios formulários, passando pela validação e pela baixa de estoque, e captura as telas com Chrome headless.
 
-**Produtos**: busca, estoque baixo destacado e situação.
+**Início**: faturamento de hoje e do mês, ticket médio, vendas dos últimos 14 dias, últimas vendas, mais vendidos e o que repor. Conta só vendas confirmadas.
+
+![Início](docs/screenshots/dashboard.png)
+
+**Produtos**: busca, filtros (estoque baixo, inativos), estoque baixo destacado e situação.
 
 ![Produtos](docs/screenshots/products.png)
 
-**Nova venda**: itens adicionados pelo servidor e total estimado.
+![Produtos com estoque baixo](docs/screenshots/products-low-stock.png)
+
+**Nova venda**: subtotal e total atualizam enquanto se digita (o servidor recalcula tudo ao registrar; sem JavaScript, o formulário continua funcionando).
 
 ![Nova venda](docs/screenshots/sale-form.png)
 
@@ -369,9 +375,17 @@ Capturas reais da aplicação, com dados fictícios. Para gerar de novo: `script
 
 ![Detalhe da venda](docs/screenshots/sale-detail.png)
 
-**Vendas**
+**Vendas**: situação de cada venda; total de venda cancelada riscado.
 
 ![Vendas](docs/screenshots/sales.png)
+
+**Venda cancelada**: motivo e data; os itens voltaram ao estoque.
+
+![Venda cancelada](docs/screenshots/sale-cancelled.png)
+
+**Login**
+
+![Login](docs/screenshots/login.png)
 
 **Clientes**: CPF/CNPJ mascarado na listagem.
 
@@ -385,7 +399,7 @@ Capturas reais da aplicação, com dados fictícios. Para gerar de novo: `script
 
 **Celular (390 px)**
 
-<img src="docs/screenshots/products-mobile.png" alt="Produtos no celular" width="300">
+<img src="docs/screenshots/dashboard-mobile.png" alt="Início no celular" width="300"> <img src="docs/screenshots/products-mobile.png" alt="Produtos no celular" width="300">
 
 ## Como contribuir
 
