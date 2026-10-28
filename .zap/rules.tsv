@@ -1,0 +1,4 @@
+# ZAP baseline rule overrides: <id>	<IGNORE|INFO|WARN|FAIL>	<reason>. Anything not listed fails the job at
+# WARN or above. Every IGNORE says why it does not apply.
+10049	IGNORE	Non-storable content: dynamic pages are no-store on purpose (Spring Security default)
+10096	IGNORE	Timestamp disclosure: the only numbers ZAP sees are dates rendered for the operator

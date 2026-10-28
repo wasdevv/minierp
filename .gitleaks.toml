@@ -1,0 +1,15 @@
+# Default gitleaks rules plus allowlists for values that are deliberately public: local-only defaults in
+# compose/CI and fictitious test data. Real secrets never live in the repository (see README, DevOps).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Local-only defaults and test fixtures"
+regexTarget = "line"
+regexes = [
+  '''admin_local''',
+  '''mini_erp_local''',
+  '''mini_erp_ci''',
+  '''screenshots-only''',
+  '''test-password''',
+]

@@ -1,5 +1,5 @@
-# Local development only. The password default below exists so `docker compose up` works out of the box;
-# never reuse it anywhere shared. Override it in a .env file (git-ignored): DB_PASSWORD=...
+# Local development and the CI smoke test. The password defaults below exist so `docker compose up` works out
+# of the box; never reuse them anywhere shared. Override them in a .env file (git-ignored).
 name: mini-erp
 
 services:
@@ -20,9 +20,12 @@ services:
       interval: 5s
       timeout: 3s
       retries: 20
+    restart: unless-stopped
 
   app:
-    build: .
+    build:
+      context: .
+    image: ${APP_IMAGE:-mini-erp:local}
     depends_on:
       db:
         condition: service_healthy
@@ -36,6 +39,16 @@ services:
       MINIERP_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin_local}
     ports:
       - "${SERVER_PORT:-8080}:8080"
+    # Least privilege: read-only root filesystem (Tomcat and JasperReports only write to /tmp), no Linux
+    # capabilities, no privilege escalation, bounded memory.
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 768m
+    restart: unless-stopped
 
 volumes:
   db-data:
