@@ -27,11 +27,6 @@ class ProductControllerIntegrationTest extends IntegrationTest {
     private ProductRepository products;
 
     @Test
-    void rootRedirectsToProducts() throws Exception {
-        mvc.perform(get("/")).andExpect(redirectedUrl("/products"));
-    }
-
-    @Test
     void createsProductAndNormalizesInput() throws Exception {
         mvc.perform(post("/products")
                         .param("name", "  Caneta azul ")
@@ -280,14 +275,46 @@ class ProductControllerIntegrationTest extends IntegrationTest {
         save("Caneta azul", "CN-01", "2.50", 10);
 
         mvc.perform(get("/products").param("q", "%"))
-                .andExpect(content().string(containsString("Nenhum produto encontrado para a busca.")))
+                .andExpect(content().string(containsString("Nenhum produto encontrado.")))
                 .andExpect(content().string(not(containsString("Caneta azul"))));
+    }
+
+    @Test
+    void lowStockFilterShowsOnlyActiveProductsAtOrBelowTheThreshold() throws Exception {
+        save("Caneta", "CN-01", "2.50", 10);
+        save("Caderno", "CD-01", "9.90", 11);
+        Product old = save("Agenda", "AG-01", "9.90", 0);
+        old.setActive(false);
+        products.save(old);
+
+        mvc.perform(get("/products").param("filter", "low-stock"))
+                .andExpect(content().string(containsString("Caneta")))
+                .andExpect(content().string(not(containsString("Caderno"))))
+                .andExpect(content().string(not(containsString("Agenda"))))
+                .andExpect(content().string(containsString("aria-current=\"true\">Estoque baixo (até 10)")));
+    }
+
+    @Test
+    void inactiveFilterCombinesWithSearch() throws Exception {
+        Product a = save("Agenda azul", "AG-01", "9.90", 5);
+        a.setActive(false);
+        products.save(a);
+        Product b = save("Agenda verde", "AG-02", "9.90", 5);
+        b.setActive(false);
+        products.save(b);
+        save("Agenda rosa", "AG-03", "9.90", 5);
+
+        mvc.perform(get("/products").param("filter", "inactive").param("q", "azul"))
+                .andExpect(content().string(containsString("Agenda azul")))
+                .andExpect(content().string(not(containsString("Agenda verde"))))
+                .andExpect(content().string(not(containsString("Agenda rosa"))))
+                .andExpect(content().string(containsString("name=\"filter\" value=\"inactive\"")));
     }
 
     @Test
     void emptyListShowsMessage() throws Exception {
         mvc.perform(get("/products"))
-                .andExpect(content().string(containsString("Nenhum produto cadastrado.")));
+                .andExpect(content().string(containsString("Nenhum produto cadastrado ainda.")));
     }
 
     @Test

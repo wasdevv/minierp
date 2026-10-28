@@ -14,7 +14,11 @@
 
     <div th:replace="~{fragments/layout :: notice}"></div>
 
-    <p th:if="${page.empty}" class="empty">Nenhuma venda registrada.</p>
+    <div th:if="${page.empty}" class="empty">
+        <strong>Nenhuma venda registrada.</strong>
+        <span>Registre a primeira venda: o total e a baixa de estoque são calculados no servidor.</span>
+        <a class="button" th:href="@{/sales/new}">Nova venda</a>
+    </div>
 
     <table th:unless="${page.empty}">
         <thead>

@@ -16,6 +16,9 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "products")
 public class Product {
 
+    /** At or below this quantity an active product counts as low on stock. */
+    public static final int LOW_STOCK = 10;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

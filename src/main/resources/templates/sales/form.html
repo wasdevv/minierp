@@ -33,6 +33,7 @@
                     <select th:field="*{items[__${row.index}__].productId}">
                         <option value="">Escolha um produto</option>
                         <option th:each="p : ${products}" th:value="${p.id}" th:disabled="${p.stockQuantity == 0}"
+                                th:attr="data-price=${p.price},data-stock=${p.stockQuantity}"
                                 th:text="|${p.name} · ${p.sku} · R$ ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')} · ${p.stockQuantity == 0 ? 'sem estoque' : p.stockQuantity + ' em estoque'}|">Produto</option>
                     </select>
                 </div>
@@ -40,6 +41,7 @@
                     <label th:for="|items${row.index}.quantity|">Qtd.</label>
                     <input type="number" min="1" step="1" th:field="*{items[__${row.index}__].quantity}">
                 </div>
+                <span class="sale-item__subtotal" data-subtotal aria-live="polite"></span>
                 <button type="submit" class="ghost danger" name="removeItem" th:value="${row.index}"
                         th:attr="aria-label=|Remover item ${row.count}|" formnovalidate>Remover</button>
             </div>
@@ -48,7 +50,7 @@
 
         <div class="sale-total">
             <span>Total estimado</span>
-            <strong th:text="${'R$ ' + #numbers.formatDecimal(estimatedTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <strong data-total th:text="${'R$ ' + #numbers.formatDecimal(estimatedTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
         </div>
         <p class="muted hint">Ao registrar, o servidor recalcula o total com os preços atuais e baixa o estoque.</p>
 
@@ -58,5 +60,6 @@
         </div>
     </form>
 </main>
+<script th:src="@{/js/sale-form.js}" defer></script>
 </body>
 </html>

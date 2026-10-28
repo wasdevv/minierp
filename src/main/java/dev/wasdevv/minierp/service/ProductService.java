@@ -1,5 +1,6 @@
 package dev.wasdevv.minierp.service;
 
+import dev.wasdevv.minierp.dto.ProductFilter;
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.InUseException;
@@ -29,11 +30,13 @@ public class ProductService {
     }
 
     @Transactional(readOnly = true)
-    public Page<Product> search(String query, Pageable pageable) {
-        if (query == null || query.isBlank()) {
+    public Page<Product> search(String query, ProductFilter filter, Pageable pageable) {
+        if ((query == null || query.isBlank()) && filter == ProductFilter.ALL) {
             return products.findAll(pageable);
         }
-        return products.search(SearchTerms.escapeLike(query.strip()), pageable);
+        String term = query == null ? "" : SearchTerms.escapeLike(query.strip());
+        return products.search(term, filter == ProductFilter.LOW_STOCK, Product.LOW_STOCK,
+                filter == ProductFilter.INACTIVE, pageable);
     }
 
     @Transactional(readOnly = true)

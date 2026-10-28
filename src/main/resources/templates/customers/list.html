@@ -20,10 +20,11 @@
         <a th:if="${!#strings.isEmpty(q)}" th:href="@{/customers}">Limpar</a>
     </form>
 
-    <p th:if="${page.empty}" class="empty"
-       th:text="${#strings.isEmpty(q)} ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado para a busca.'">
-        Nenhum cliente cadastrado.
-    </p>
+    <div th:if="${page.empty}" class="empty">
+        <strong th:text="${#strings.isEmpty(q)} ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado para a busca.'">Nenhum cliente cadastrado.</strong>
+        <span th:if="${#strings.isEmpty(q)}">Vendas também podem ser feitas para consumidor final, sem cadastro.</span>
+        <a th:if="${#strings.isEmpty(q)}" class="button" th:href="@{/customers/new}">Novo cliente</a>
+    </div>
 
     <table th:unless="${page.empty}">
         <thead>

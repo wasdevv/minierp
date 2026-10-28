@@ -18,8 +18,8 @@ O Mini ERP é uma aplicação web server-side: cada endpoint devolve uma página
 
 | Método | Caminho | Parâmetros | Resposta |
 |---|---|---|---|
-| GET | `/` | | Redireciona para `/products` |
-| GET | `/products` | `q` (busca por nome ou SKU), `page` (a partir de 0) | Lista paginada, 10 por página, ordenada por nome |
+| GET | `/` | | Painel: faturamento de hoje e do mês, ticket médio, vendas dos últimos 14 dias, últimas vendas, mais vendidos do mês e produtos a repor. Só vendas confirmadas contam |
+| GET | `/products` | `q` (busca por nome ou SKU), `filter` (`low-stock`: ativos com até 10 unidades; `inactive`), `page` (a partir de 0) | Lista paginada, 10 por página, ordenada por nome |
 | GET | `/products/new` | | Formulário vazio |
 | POST | `/products` | `name`, `sku`, `description`, `price`, `stockQuantity`, `active` | Sucesso: redireciona para `/products`. Erro: formulário com mensagens (200) |
 | GET | `/products/{id}/edit` | | Formulário preenchido, com `version` oculto. 404 se não existir |

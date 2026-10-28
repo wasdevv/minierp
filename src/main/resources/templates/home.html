@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Início')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('home')}"></header>
+<main th:with="d=${dashboard}">
+    <div class="page-header">
+        <div>
+            <h1>Visão geral</h1>
+            <p class="subtitle" th:text="|Hoje, ${#temporals.format(d.date, 'dd/MM/yyyy')} · somente vendas confirmadas|">Hoje</p>
+        </div>
+        <a class="button" th:href="@{/sales/new}">Nova venda</a>
+    </div>
+
+    <div th:if="${d.isEmpty()}" class="empty onboarding">
+        <strong>Bem-vindo ao Mini ERP</strong>
+        <span>Comece cadastrando produtos; depois registre vendas e acompanhe tudo aqui.</span>
+        <a class="button" th:href="@{/products/new}">Cadastrar produto</a>
+    </div>
+
+    <section class="kpis" aria-label="Indicadores">
+        <div class="kpi">
+            <span class="kpi__label">Faturamento hoje</span>
+            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(d.today.revenue, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint" th:text="|${d.today.sales} venda(s)|">0 venda(s)</span>
+        </div>
+        <div class="kpi kpi--accent">
+            <span class="kpi__label">Faturamento no mês</span>
+            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(d.month.revenue, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint" th:text="|${d.month.sales} venda(s)|">0 venda(s)</span>
+        </div>
+        <div class="kpi">
+            <span class="kpi__label">Ticket médio no mês</span>
+            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(d.month.averageTicket(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint">por venda confirmada</span>
+        </div>
+        <a class="kpi kpi--link" th:href="@{/products(filter='low-stock')}" th:classappend="${!#lists.isEmpty(d.lowStock)} ? 'kpi--warn'">
+            <span class="kpi__label">Estoque baixo</span>
+            <strong class="kpi__value" th:text="${#lists.size(d.lowStock) > 5} ? '5+' : ${#lists.size(d.lowStock)}">0</strong>
+            <span class="kpi__hint" th:text="|de ${d.activeProducts} produto(s) ativo(s)|">de 0 produtos</span>
+        </a>
+    </section>
+
+    <section class="card chart-card" aria-labelledby="chart-title">
+        <div class="card__header">
+            <h2 id="chart-title">Vendas nos últimos 14 dias</h2>
+            <span class="muted" th:text="${'R$ ' + #numbers.formatDecimal(d.lastDaysRevenue(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+        </div>
+        <ol class="bars">
+            <li th:each="day : ${d.lastDays}" class="bars__day"
+                th:title="|${#temporals.format(day.date, 'dd/MM')}: R$ ${#numbers.formatDecimal(day.revenue, 1, 'POINT', 2, 'COMMA')} em ${day.sales} venda(s)|">
+                <span class="bars__bar" th:style="|height: ${day.heightPercent}%|" th:classappend="${day.sales == 0} ? 'bars__bar--zero'"></span>
+                <span class="bars__label" th:text="${#temporals.format(day.date, 'dd/MM')}">01/10</span>
+            </li>
+        </ol>
+    </section>
+
+    <div class="grid-2">
+        <section class="card" aria-labelledby="recent-title">
+            <div class="card__header">
+                <h2 id="recent-title">Últimas vendas</h2>
+                <a th:href="@{/sales}">Ver todas</a>
+            </div>
+            <p th:if="${#lists.isEmpty(d.recentSales)}" class="muted">Nenhuma venda ainda.</p>
+            <ul class="rows" th:unless="${#lists.isEmpty(d.recentSales)}">
+                <li th:each="s : ${d.recentSales}">
+                    <a class="rows__main" th:href="@{/sales/{id}(id=${s.id})}">
+                        <strong th:text="|#${s.id} · ${s.customer != null ? s.customer.name : 'Consumidor final'}|">#1</strong>
+                        <span class="muted" th:text="${#temporals.format(s.saleDate.atZoneSameInstant(zone), 'dd/MM HH:mm')}">01/10 10:00</span>
+                    </a>
+                    <span class="rows__value" th:classappend="${s.cancelled} ? 'struck'"
+                          th:text="${'R$ ' + #numbers.formatDecimal(s.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                </li>
+            </ul>
+        </section>
+
+        <section class="card" aria-labelledby="top-title">
+            <div class="card__header">
+                <h2 id="top-title">Mais vendidos no mês</h2>
+                <a th:href="@{/reports/sales}">Relatório</a>
+            </div>
+            <p th:if="${#lists.isEmpty(d.topProducts)}" class="muted">Nenhuma venda confirmada neste mês.</p>
+            <ol class="rows rows--ranked" th:unless="${#lists.isEmpty(d.topProducts)}">
+                <li th:each="p, i : ${d.topProducts}">
+                    <span class="rows__rank" th:text="${i.count}">1</span>
+                    <span class="rows__main">
+                        <strong th:text="${p.name}">Produto</strong>
+                        <span class="muted" th:text="|${p.sku} · ${p.units} un.|">SKU</span>
+                    </span>
+                    <span class="rows__value" th:text="${'R$ ' + #numbers.formatDecimal(p.revenue, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</span>
+                </li>
+            </ol>
+        </section>
+    </div>
+
+    <section class="card" aria-labelledby="low-title" th:unless="${#lists.isEmpty(d.lowStock)}">
+        <div class="card__header">
+            <h2 id="low-title">Repor estoque</h2>
+            <a th:href="@{/products(filter='low-stock')}">Ver todos</a>
+        </div>
+        <ul class="stock-list">
+            <li th:each="p, i : ${d.lowStock}" th:if="${i.count <= 5}">
+                <a th:href="@{/products/{id}/edit(id=${p.id})}">
+                    <span><strong th:text="${p.name}">Produto</strong> <span class="muted" th:text="${p.sku}">SKU</span></span>
+                    <span th:class="${p.stockQuantity == 0} ? 'pill pill--danger' : 'stock-low'"
+                          th:text="${p.stockQuantity == 0} ? 'Sem estoque' : ${p.stockQuantity}">0</span>
+                </a>
+            </li>
+        </ul>
+    </section>
+</main>
+</body>
+</html>
