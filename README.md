@@ -311,7 +311,13 @@ Casos importantes para cobrir (os de produtos, clientes, vendas e estoque já es
 
 Se os testes de integração dependerem de PostgreSQL, documente como iniciar uma instância de teste. Testes unitários não devem depender de serviços externos sem necessidade.
 
+## Fluxos e endpoints
+
+Rotas, parâmetros e respostas, o fluxo de venda com baixa de estoque (com diagrama) e onde cada regra de negócio está no código: [`docs/fluxos-e-endpoints.md`](docs/fluxos-e-endpoints.md).
+
 ## Segurança e boas práticas
+
+> Estado atual: **não há autenticação nem proteção CSRF**. A aplicação é para uso local; o primeiro item abaixo é pré-requisito para qualquer ambiente compartilhado.
 
 - Nunca commitar segredos ou dados reais de clientes.
 - Validar e normalizar os dados de entrada.
@@ -333,7 +339,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 - [x] Adicionar testes unitários e de integração.
 - [x] Adicionar Docker Compose para desenvolvimento, se útil.
 - [x] Criar screenshots reais da interface.
-- [ ] Documentar endpoints ou fluxos principais.
+- [x] Documentar endpoints ou fluxos principais.
 - [ ] Configurar CI para executar os testes.
 
 ## Screenshots
