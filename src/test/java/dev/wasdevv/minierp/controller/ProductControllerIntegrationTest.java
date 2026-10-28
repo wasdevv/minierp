@@ -110,6 +110,31 @@ class ProductControllerIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void newFormStartsEmptyAndActive() throws Exception {
+        mvc.perform(get("/products/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Novo produto")))
+                .andExpect(content().string(containsString("name=\"active\" value=\"true\" checked=\"checked\"")))
+                .andExpect(content().string(containsString("action=\"/products\"")));
+    }
+
+    @Test
+    void invalidEditRendersTheFormWithErrorsAndKeepsTheProduct() throws Exception {
+        Product product = save("Caneta azul", "CN-01", "2.50", 10);
+
+        mvc.perform(post("/products/{id}", product.getId())
+                        .param("version", "0").param("name", "").param("sku", "CN-01")
+                        .param("price", "2.50").param("stockQuantity", "10"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("products/form"))
+                .andExpect(content().string(containsString("Editar produto")))
+                .andExpect(content().string(containsString("action=\"/products/" + product.getId() + "\"")))
+                .andExpect(content().string(containsString("Informe o nome.")));
+
+        assertThat(products.findById(product.getId()).orElseThrow().getName()).isEqualTo("Caneta azul");
+    }
+
+    @Test
     void editFormShowsCurrentValues() throws Exception {
         Product product = save("Caneta azul", "CN-01", "2.50", 10);
 

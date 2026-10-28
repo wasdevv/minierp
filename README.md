@@ -270,6 +270,18 @@ MINIERP_TEST_DB_USER=postgres MINIERP_TEST_DB_PASSWORD=... ./mvnw test
 
 O banco de teste é limpo antes de cada teste: não aponte para um banco com dados que importam.
 
+### Cobertura
+
+O JaCoCo gera o relatório em `target/site/jacoco/index.html` a cada `test`. O `verify` também exige no mínimo **95% de linhas e 90% de branches**:
+
+```bash
+MINIERP_TEST_JDBC_URL=jdbc:postgresql://localhost:5432/mini_erp_test ./mvnw verify
+```
+
+Sem o banco de teste, os testes de integração são pulados, a cobertura cai abaixo do mínimo e o `verify` falha. Isso é intencional: suíte sem integração não conta como verde.
+
+Medido em 27/10/2026 (JDK 21, PostgreSQL 18 local): 150 testes, **97,7% das linhas** (630/645) e **94,4% dos branches** (218/231).
+
 Casos importantes para cobrir (os de produtos, clientes, vendas e estoque já estão cobertos; faltam os de relatório):
 
 - Criar, editar, consultar e excluir produtos.
@@ -303,7 +315,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 - [x] Implementar fluxo de vendas.
 - [x] Implementar baixa transacional de estoque.
 - [x] Criar relatório de vendas em PDF.
-- [ ] Adicionar testes unitários e de integração.
+- [x] Adicionar testes unitários e de integração.
 - [ ] Adicionar Docker Compose para desenvolvimento, se útil.
 - [ ] Criar screenshots reais da interface.
 - [ ] Documentar endpoints ou fluxos principais.

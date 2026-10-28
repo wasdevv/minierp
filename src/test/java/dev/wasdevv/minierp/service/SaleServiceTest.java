@@ -109,6 +109,22 @@ class SaleServiceTest {
     }
 
     @Test
+    void rejectsMoreLinesThanTheLimit() {
+        SaleItemForm[] lines = new SaleItemForm[SaleService.MAX_LINES + 1];
+        for (int i = 0; i < lines.length; i++) {
+            lines[i] = line((long) i + 1, 1);
+        }
+
+        assertThat(rejected(form(null, lines)).getReasons()).contains("Uma venda pode ter no máximo 50 itens.");
+    }
+
+    @Test
+    void rejectsRepeatedLinesWhoseSumPassesTheQuantityLimit() {
+        assertThat(rejected(form(null, line(1L, 60_000), line(1L, 60_000))).getReasons())
+                .containsExactly("A quantidade somada de um mesmo produto passa de 100000.");
+    }
+
+    @Test
     void rejectsInactiveAndMissingProducts() {
         when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", false)));
 

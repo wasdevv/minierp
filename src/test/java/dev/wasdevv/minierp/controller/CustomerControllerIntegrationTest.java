@@ -104,6 +104,27 @@ class CustomerControllerIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void newFormRenders() throws Exception {
+        mvc.perform(get("/customers/new"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Novo cliente")))
+                .andExpect(content().string(containsString("action=\"/customers\"")));
+    }
+
+    @Test
+    void invalidEditRendersTheFormWithErrorsAndKeepsTheCustomer() throws Exception {
+        Customer customer = save("Maria Souza", null, CPF);
+
+        mvc.perform(post("/customers/{id}", customer.getId()).param("name", "").param("document", CPF))
+                .andExpect(status().isOk())
+                .andExpect(view().name("customers/form"))
+                .andExpect(content().string(containsString("Editar cliente")))
+                .andExpect(content().string(containsString("Informe o nome.")));
+
+        assertThat(customers.findById(customer.getId()).orElseThrow().getName()).isEqualTo("Maria Souza");
+    }
+
+    @Test
     void editFormShowsFormattedDocument() throws Exception {
         Customer customer = save("Empresa Exemplo Ltda", "contato@exemplo.com", CNPJ);
 
