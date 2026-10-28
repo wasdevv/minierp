@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
+import dev.wasdevv.minierp.exception.StaleProductException;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.repository.SaleItemRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
@@ -70,7 +71,7 @@ class ProductServiceTest {
         when(products.existsBySkuAndIdNot("CN-01", 7L)).thenReturn(false);
         when(products.saveAndFlush(existing)).thenReturn(existing);
 
-        service.update(7L, form("CN-01"));
+        service.update(7L, form("CN-01", 0L));
 
         assertThat(existing.getSku()).isEqualTo("CN-01");
         assertThat(existing.getPrice()).isEqualByComparingTo("2.50");
@@ -81,7 +82,16 @@ class ProductServiceTest {
         when(products.findById(7L)).thenReturn(Optional.of(new Product()));
         when(products.existsBySkuAndIdNot("CN-02", 7L)).thenReturn(true);
 
-        assertThatThrownBy(() -> service.update(7L, form("CN-02"))).isInstanceOf(DuplicateSkuException.class);
+        assertThatThrownBy(() -> service.update(7L, form("CN-02", 0L))).isInstanceOf(DuplicateSkuException.class);
+    }
+
+    @Test
+    void updateRejectsFormLoadedBeforeTheLastChange() {
+        when(products.findById(7L)).thenReturn(Optional.of(new Product()));
+
+        assertThatThrownBy(() -> service.update(7L, form("CN-01", 3L))).isInstanceOf(StaleProductException.class);
+        assertThatThrownBy(() -> service.update(7L, form("CN-01", null))).isInstanceOf(StaleProductException.class);
+        verify(products, never()).saveAndFlush(any());
     }
 
     @Test
@@ -106,7 +116,12 @@ class ProductServiceTest {
     }
 
     private static ProductForm form(String sku) {
+        return form(sku, null);
+    }
+
+    private static ProductForm form(String sku, Long version) {
         ProductForm form = new ProductForm();
+        form.setVersion(version);
         form.setName("Caneta azul");
         form.setSku(sku);
         form.setPrice(new BigDecimal("2.50"));

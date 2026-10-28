@@ -32,8 +32,8 @@
                     <label th:for="|items${row.index}.productId|" th:text="|Produto ${row.count}|">Produto 1</label>
                     <select th:field="*{items[__${row.index}__].productId}">
                         <option value="">Escolha um produto</option>
-                        <option th:each="p : ${products}" th:value="${p.id}"
-                                th:text="|${p.name} · ${p.sku} · R$ ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}|">Produto</option>
+                        <option th:each="p : ${products}" th:value="${p.id}" th:disabled="${p.stockQuantity == 0}"
+                                th:text="|${p.name} · ${p.sku} · R$ ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')} · ${p.stockQuantity == 0 ? 'sem estoque' : p.stockQuantity + ' em estoque'}|">Produto</option>
                     </select>
                 </div>
                 <div class="sale-item__quantity">
@@ -50,7 +50,7 @@
             <span>Total estimado</span>
             <strong th:text="${'R$ ' + #numbers.formatDecimal(estimatedTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
         </div>
-        <p class="muted hint">O total é recalculado no servidor com os preços atuais ao registrar.</p>
+        <p class="muted hint">Ao registrar, o servidor recalcula o total com os preços atuais e baixa o estoque.</p>
 
         <div class="form-actions">
             <button type="submit">Registrar venda</button>

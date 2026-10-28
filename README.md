@@ -31,10 +31,10 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 ### Vendas e estoque
 - [x] Registrar uma venda com um ou mais itens.
 - [x] Calcular subtotal e total no servidor.
-- [ ] Atualizar o estoque ao confirmar uma venda.
-- [ ] Impedir vendas com quantidade maior que o estoque disponível.
+- [x] Atualizar o estoque ao confirmar uma venda.
+- [x] Impedir vendas com quantidade maior que o estoque disponível.
 - [x] Registrar data, itens, quantidades e preços praticados na venda.
-- [ ] Garantir consistência transacional entre venda e estoque.
+- [x] Garantir consistência transacional entre venda e estoque.
 
 ### Relatórios
 - [ ] Gerar relatório de vendas por período.
@@ -105,6 +105,7 @@ src/
 - `price`: preço atual de venda.
 - `stock_quantity`: quantidade disponível.
 - `active`: indica se o produto está ativo.
+- `version`: lock otimista (`V4__add_product_version.sql`); a edição de um produto alterado depois que o formulário abriu é recusada, para não sobrescrever uma baixa de estoque.
 - `created_at` e `updated_at`: datas de auditoria.
 
 ### `customers` (implementado em `V2__create_customers.sql`)
@@ -143,6 +144,16 @@ Em `products`, preço e estoque negativos são barrados pela validação do form
 6. Registre o preço aplicado em cada item da venda, para preservar o histórico mesmo que o preço do produto mude.
 7. Defina como cancelamentos afetam estoque e relatórios, caso o cancelamento seja implementado.
 8. Valide entradas tanto na camada web quanto na camada de serviço quando necessário.
+
+## Baixa de estoque
+
+Registrar uma venda e baixar o estoque acontecem na mesma transação (`SaleService.create`):
+
+1. Os produtos da venda são lidos com `SELECT ... FOR UPDATE`, em ordem de id (duas vendas com produtos em comum travam na mesma ordem e não entram em deadlock).
+2. Cada produto é conferido contra a soma das linhas dele na venda. Faltando estoque em qualquer um, a venda inteira é recusada e nenhum estoque muda.
+3. O estoque é baixado e a venda gravada; se a gravação falhar, o rollback devolve o estoque.
+
+Uma segunda venda simultânea do mesmo produto espera a primeira terminar e enxerga o estoque já baixado. O `CHECK (stock_quantity >= 0)` do banco é a última barreira.
 
 ## Relatórios com JasperReports
 
@@ -269,7 +280,7 @@ MINIERP_TEST_DB_USER=postgres MINIERP_TEST_DB_PASSWORD=... ./mvnw test
 
 O banco de teste é limpo antes de cada teste: não aponte para um banco com dados que importam.
 
-Casos importantes para cobrir (os de produtos, clientes e do registro de vendas já estão cobertos; os de estoque entram com a baixa transacional):
+Casos importantes para cobrir (os de produtos, clientes, vendas e estoque já estão cobertos; faltam os de relatório):
 
 - Criar, editar, consultar e excluir produtos.
 - Rejeitar preço negativo e quantidade inválida.
@@ -300,7 +311,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 - [x] Implementar CRUD de produtos.
 - [x] Implementar CRUD de clientes.
 - [x] Implementar fluxo de vendas.
-- [ ] Implementar baixa transacional de estoque.
+- [x] Implementar baixa transacional de estoque.
 - [ ] Criar relatório de vendas em PDF.
 - [ ] Adicionar testes unitários e de integração.
 - [ ] Adicionar Docker Compose para desenvolvimento, se útil.

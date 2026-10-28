@@ -6,8 +6,11 @@
 <main>
     <h1 th:text="${productId} == null ? 'Novo produto' : 'Editar produto'">Novo produto</h1>
 
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
     <form class="form" method="post" th:object="${product}"
           th:action="${productId} == null ? @{/products} : @{/products/{id}(id=${productId})}" novalidate>
+        <input type="hidden" th:field="*{version}">
         <div class="errors" th:if="${#fields.hasErrors('*')}" role="alert">
             Corrija os campos destacados.
         </div>
