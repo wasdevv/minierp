@@ -634,3 +634,60 @@ tfoot td.total { font-size: 16px; font-weight: 700; }
   .sale-item { grid-template-columns: 1fr 90px; }
   .sale-item button.ghost { grid-column: 1 / -1; }
 }
+
+/* ==========================================================
+   Relatórios
+   ========================================================== */
+
+.page-header .button--pdf::before { content: '↓'; }
+
+form.period { align-items: flex-end; flex-wrap: wrap; }
+
+form.period label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+form.search.period input {
+  flex: none;
+  width: 180px;
+  padding: 0 14px;
+  background-image: none;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  display: grid;
+  gap: 6px;
+  padding: 18px 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.stat span { color: var(--muted); font-size: 13px; font-weight: 500; }
+.stat strong { font-size: 22px; font-weight: 700; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+.stat--accent { border-color: #c7d2fe; background: var(--primary-50); }
+.stat--accent strong { color: var(--primary-600); }
+
+@media (max-width: 720px) {
+  .stats { grid-template-columns: 1fr; }
+  form.search.period input { width: 100%; }
+  form.period label { flex: 1 1 140px; }
+}
+
+.stat--period strong { font-size: 17px; white-space: nowrap; }
+tbody td:first-child a { font-weight: 600; text-decoration: none; }
+tbody td:first-child a:hover { text-decoration: underline; }

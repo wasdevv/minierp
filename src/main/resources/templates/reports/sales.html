@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Relatório de vendas')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('reports')}"></header>
+<main>
+    <div class="page-header">
+        <div>
+            <h1>Relatório de vendas</h1>
+            <p class="subtitle">Vendas e total vendido por período, com exportação em PDF</p>
+        </div>
+        <a class="button button--pdf" th:if="${report}"
+           th:href="@{/reports/sales.pdf(from=${from}, to=${to})}">Baixar PDF</a>
+    </div>
+
+    <form class="search period" method="get" th:action="@{/reports/sales}">
+        <label>De <input type="date" name="from" th:value="${from}" required></label>
+        <label>Até <input type="date" name="to" th:value="${to}" required></label>
+        <button type="submit">Gerar</button>
+    </form>
+
+    <div th:if="${problem}" class="alert" role="alert" th:text="${problem}">Período inválido</div>
+
+    <th:block th:if="${report}">
+        <div class="stats">
+            <div class="stat stat--period">
+                <span>Período</span>
+                <strong th:text="${report.period.label()}">01/10/2026 a 27/10/2026</strong>
+            </div>
+            <div class="stat">
+                <span>Vendas</span>
+                <strong th:text="${report.saleCount()}">0</strong>
+            </div>
+            <div class="stat stat--accent">
+                <span>Total vendido</span>
+                <strong th:text="${'R$ ' + #numbers.formatDecimal(report.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <p th:if="${report.isEmpty()}" class="empty">Nenhuma venda no período.</p>
+
+        <table th:unless="${report.isEmpty()}">
+            <thead>
+            <tr>
+                <th>Venda</th>
+                <th>Cliente</th>
+                <th>Data</th>
+                <th class="num">Itens</th>
+                <th class="num">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="row : ${report.rows}">
+                <td><a th:href="@{/sales/{id}(id=${row.saleId})}" th:text="|#${row.saleId}|">#1</a></td>
+                <td th:text="${row.customerName}">Cliente</td>
+                <td th:text="${#temporals.format(row.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+                <td class="num" th:text="${row.units}">1</td>
+                <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(row.total, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            </tr>
+            </tbody>
+        </table>
+    </th:block>
+</main>
+</body>
+</html>

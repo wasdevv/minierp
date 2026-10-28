@@ -13,6 +13,7 @@
         <a th:href="@{/products}" th:attr="aria-current=${section == 'products'} ? 'page' : null">Produtos</a>
         <a th:href="@{/customers}" th:attr="aria-current=${section == 'customers'} ? 'page' : null">Clientes</a>
         <a th:href="@{/sales}" th:attr="aria-current=${section == 'sales'} ? 'page' : null">Vendas</a>
+        <a th:href="@{/reports/sales}" th:attr="aria-current=${section == 'reports'} ? 'page' : null">Relatórios</a>
     </nav>
 </header>
 <th:block th:fragment="notice">

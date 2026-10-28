@@ -37,10 +37,10 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 - [x] Garantir consistência transacional entre venda e estoque.
 
 ### Relatórios
-- [ ] Gerar relatório de vendas por período.
-- [ ] Exibir total vendido e quantidade de vendas.
-- [ ] Exportar relatório em PDF usando JasperReports.
-- [ ] Tratar períodos inválidos e resultados vazios.
+- [x] Gerar relatório de vendas por período.
+- [x] Exibir total vendido e quantidade de vendas.
+- [x] Exportar relatório em PDF usando JasperReports.
+- [x] Tratar períodos inválidos e resultados vazios.
 
 ### Qualidade e manutenção
 - [x] Testes unitários para regras de negócio (produtos e clientes).
@@ -66,7 +66,7 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 | JUnit 5 / Mockito | Testes unitários |
 | Spring Boot Test | Testes de integração |
 
-As versões estão no `pom.xml` (Spring Boot 3.5.16, que gerencia as demais). JasperReports entra na etapa de relatórios; ainda não é dependência.
+As versões estão no `pom.xml`: Spring Boot 3.5.16, que gerencia a maioria, e JasperReports 6.21.4 com as fontes DejaVu (`jasperreports-fonts`), para o PDF sair igual com ou sem fontes instaladas no sistema.
 
 ## Arquitetura sugerida
 
@@ -93,7 +93,7 @@ src/
     └── java/dev/wasdevv/minierp/
 ```
 
-É a estrutura usada no código. `reports/` ainda não existe: chega com o relatório em PDF.
+É a estrutura usada no código.
 
 ## Modelo de dados sugerido
 
@@ -157,23 +157,13 @@ Uma segunda venda simultânea do mesmo produto espera a primeira terminar e enxe
 
 ## Relatórios com JasperReports
 
-Uma implementação típica pode seguir este fluxo:
+Em **Relatórios** (`/reports/sales`) o usuário escolhe o período (padrão: mês corrente) e vê na tela os mesmos dados do PDF; **Baixar PDF** chama `/reports/sales.pdf?from=AAAA-MM-DD&to=AAAA-MM-DD`.
 
-1. O usuário seleciona o período do relatório.
-2. O controller valida os parâmetros e chama a camada de serviço.
-3. O serviço consulta as vendas no período.
-4. Os dados são enviados ao template `.jrxml`.
-5. O JasperReports preenche o relatório e exporta o resultado em PDF.
-6. A aplicação devolve o arquivo com o tipo de conteúdo `application/pdf`.
+1. `SalesReportService.parsePeriod` valida o período: as duas datas são obrigatórias, a inicial não pode passar da final e o período tem no máximo 366 dias. Período inválido volta para o formulário com a mensagem.
+2. O período é de dias inteiros **no fuso da loja** (`minierp.time-zone`): uma venda às 23:59 do dia 31 entra; uma às 00:00 do dia seguinte, não.
+3. `SalesReportPdf` preenche `src/main/resources/reports/sales.jrxml` (compilado uma vez na subida) e exporta o PDF, devolvido como `application/pdf` com o nome `vendas-<de>-a-<até>.pdf`.
 
-Sugestões para o primeiro relatório:
-- Título e período selecionado.
-- Data da venda e identificador.
-- Nome do cliente, se houver.
-- Quantidade de itens e total da venda.
-- Total geral do período.
-
-Inclua apenas informações necessárias no PDF e evite expor documentos pessoais ou outros dados sensíveis sem necessidade.
+O PDF traz título, período, data e número de cada venda, cliente (ou "Consumidor final"), quantidade de itens, total da venda, quantidade de vendas e total geral do período. Período sem vendas gera um PDF válido com "Nenhuma venda no período.". Documentos e e-mails de clientes não entram no relatório.
 
 ## Configuração local
 
@@ -312,7 +302,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 - [x] Implementar CRUD de clientes.
 - [x] Implementar fluxo de vendas.
 - [x] Implementar baixa transacional de estoque.
-- [ ] Criar relatório de vendas em PDF.
+- [x] Criar relatório de vendas em PDF.
 - [ ] Adicionar testes unitários e de integração.
 - [ ] Adicionar Docker Compose para desenvolvimento, se útil.
 - [ ] Criar screenshots reais da interface.
