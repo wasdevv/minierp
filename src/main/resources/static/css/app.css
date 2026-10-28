@@ -1071,3 +1071,22 @@ a.rows__main:hover strong { color: var(--primary); }
 .whatsapp-button { color: #25d366 !important; }
 
 .kpi--partial .kpi__hint { color: var(--warn); }
+
+/* ==========================================================
+   Filtros de vendas
+   ========================================================== */
+
+form.sale-filters { flex-wrap: wrap; align-items: center; }
+form.sale-filters input[type="search"] { flex: 1 1 220px; }
+form.sale-filters label { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 13px; }
+form.sale-filters input[type="date"], form.sale-filters select {
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+}
+.filter-summary { margin: -6px 0 16px; color: var(--muted); font-size: 13px; }

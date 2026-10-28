@@ -1,9 +1,11 @@
 package dev.wasdevv.minierp.controller;
 
+import dev.wasdevv.minierp.dto.SaleFilter;
 import dev.wasdevv.minierp.dto.SaleForm;
 import dev.wasdevv.minierp.exception.SaleRejectedException;
 import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Sale;
+import dev.wasdevv.minierp.model.SaleStatus;
 import dev.wasdevv.minierp.repository.CustomerRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
 import dev.wasdevv.minierp.service.SaleReceipt;
@@ -54,9 +56,20 @@ public class SaleController {
     }
 
     @GetMapping
-    public String list(@PageableDefault(size = 10) Pageable pageable, Model model) {
+    public String list(@RequestParam(name = "q", required = false) String query,
+                       @RequestParam(name = "from", required = false) String from,
+                       @RequestParam(name = "to", required = false) String to,
+                       @RequestParam(name = "status", required = false) String status,
+                       @RequestParam(name = "payment", required = false) String payment,
+                       @PageableDefault(size = 10) Pageable pageable, Model model) {
+        SaleFilter filter = SaleFilter.parse(query, from, to, status, payment);
         Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), LIST_ORDER);
-        model.addAttribute("page", service.list(page));
+        SaleService.SaleSearch result = service.search(filter, page);
+        model.addAttribute("page", result.page());
+        model.addAttribute("result", result);
+        model.addAttribute("filter", filter);
+        model.addAttribute("statuses", SaleStatus.values());
+        model.addAttribute("paymentMethods", PaymentMethod.values());
         return "sales/list";
     }
 

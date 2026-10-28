@@ -53,7 +53,7 @@ class SaleServiceTest {
 
     @BeforeEach
     void setUp() {
-        service = new SaleService(sales, products, customers, stock, Clock.fixed(NOW, ZoneOffset.UTC));
+        service = new SaleService(sales, products, customers, stock, Clock.fixed(NOW, ZoneOffset.UTC), ZoneOffset.UTC);
     }
 
     @Test

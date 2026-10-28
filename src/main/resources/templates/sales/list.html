@@ -14,10 +14,36 @@
 
     <div th:replace="~{fragments/layout :: notice}"></div>
 
-    <div th:if="${page.empty}" class="empty">
+    <form class="search sale-filters" method="get" th:action="@{/sales}" role="search">
+        <input type="search" name="q" th:value="${filter.query}" placeholder="Cliente ou nº da venda" aria-label="Buscar vendas">
+        <label>De <input type="date" name="from" th:value="${filter.from}"></label>
+        <label>Até <input type="date" name="to" th:value="${filter.to}"></label>
+        <select name="status" aria-label="Situação">
+            <option value="">Todas as situações</option>
+            <option th:each="st : ${statuses}" th:value="${st}" th:selected="${st == filter.status}"
+                    th:text="${st.name() == 'CONFIRMED'} ? 'Confirmadas' : 'Canceladas'">Confirmadas</option>
+        </select>
+        <select name="payment" aria-label="Forma de pagamento">
+            <option value="">Todas as formas</option>
+            <option th:each="m : ${paymentMethods}" th:value="${m}" th:selected="${m == filter.paymentMethod}" th:text="${m.label}">Pix</option>
+        </select>
+        <button type="submit">Filtrar</button>
+        <a th:if="${filter.active}" th:href="@{/sales}">Limpar</a>
+    </form>
+
+    <div th:if="${filter.problem}" class="alert" role="alert" th:text="${filter.problem}">Período inválido</div>
+
+    <p class="filter-summary" th:if="${filter.active}"
+       th:text="|${result.confirmedSales} venda(s) confirmada(s) no filtro · total R$ ${#numbers.formatDecimal(result.confirmedTotal, 1, 'POINT', 2, 'COMMA')}|">resumo</p>
+
+    <div th:if="${page.empty and !filter.active}" class="empty">
         <strong>Nenhuma venda registrada.</strong>
         <span>Registre a primeira venda: o total e a baixa de estoque são calculados no servidor.</span>
         <a class="button" th:href="@{/sales/new}">Nova venda</a>
+    </div>
+    <div th:if="${page.empty and filter.active}" class="empty">
+        <strong>Nenhuma venda encontrada.</strong>
+        <span>Tente outro cliente, período ou forma de pagamento.</span>
     </div>
 
     <table th:unless="${page.empty}">
@@ -48,9 +74,9 @@
     </table>
 
     <nav class="pagination" th:if="${page.totalPages > 1}" aria-label="Paginação">
-        <a th:if="${page.hasPrevious()}" th:href="@{/sales(page=${page.number - 1})}">Anterior</a>
+        <a th:if="${page.hasPrevious()}" th:href="@{/sales(q=${filter.query}, from=${filter.from}, to=${filter.to}, status=${filter.status}, payment=${filter.paymentMethod}, page=${page.number - 1})}">Anterior</a>
         <span th:text="|Página ${page.number + 1} de ${page.totalPages}|">Página 1 de 1</span>
-        <a th:if="${page.hasNext()}" th:href="@{/sales(page=${page.number + 1})}">Próxima</a>
+        <a th:if="${page.hasNext()}" th:href="@{/sales(q=${filter.query}, from=${filter.from}, to=${filter.to}, status=${filter.status}, payment=${filter.paymentMethod}, page=${page.number + 1})}">Próxima</a>
     </nav>
     <p class="muted" th:unless="${page.empty}" th:text="|${page.totalElements} venda(s)|">0 venda(s)</p>
 </main>
