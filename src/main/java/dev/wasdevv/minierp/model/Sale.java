@@ -3,6 +3,8 @@ package dev.wasdevv.minierp.model;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.hibernate.annotations.Formula;
 
-/** A confirmed sale. Sales are history: once saved they are never edited. */
+/** A sale. Sales are history: items and totals never change; a sale can only be cancelled. */
 @Entity
 @Table(name = "sales")
 public class Sale {
@@ -38,6 +40,16 @@ public class Sale {
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal totalAmount;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private SaleStatus status = SaleStatus.CONFIRMED;
+
+    @Column(name = "cancelled_at")
+    private OffsetDateTime cancelledAt;
+
+    @Column(name = "cancel_reason", length = 200)
+    private String cancelReason;
+
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("id")
     private List<SaleItem> items = new ArrayList<>();
@@ -49,6 +61,32 @@ public class Sale {
     public void addItem(SaleItem item) {
         item.setSale(this);
         items.add(item);
+    }
+
+    /** Marks the sale cancelled; putting the items back in stock is the caller's job, in the same transaction. */
+    public void cancel(OffsetDateTime when, String reason) {
+        if (isCancelled()) {
+            throw new IllegalStateException("Sale " + id + " is already cancelled");
+        }
+        this.status = SaleStatus.CANCELLED;
+        this.cancelledAt = when;
+        this.cancelReason = reason;
+    }
+
+    public boolean isCancelled() {
+        return status == SaleStatus.CANCELLED;
+    }
+
+    public SaleStatus getStatus() {
+        return status;
+    }
+
+    public OffsetDateTime getCancelledAt() {
+        return cancelledAt;
+    }
+
+    public String getCancelReason() {
+        return cancelReason;
     }
 
     public Long getId() {

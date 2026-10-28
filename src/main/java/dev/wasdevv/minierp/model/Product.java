@@ -114,6 +114,11 @@ public class Product {
         stockQuantity -= quantity;
     }
 
+    /** Puts {@code quantity} units back, e.g. when a sale is cancelled. */
+    public void addStock(int quantity) {
+        stockQuantity = Math.addExact(stockQuantity, quantity);
+    }
+
     public OffsetDateTime getCreatedAt() {
         return createdAt;
     }

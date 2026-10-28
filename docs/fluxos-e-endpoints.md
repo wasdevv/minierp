@@ -46,9 +46,10 @@ O Mini ERP é uma aplicação web server-side: cada endpoint devolve uma página
 | POST | `/sales` com `addItem` | o formulário atual | O mesmo formulário com mais uma linha; nada é gravado |
 | POST | `/sales` com `removeItem=<índice>` | o formulário atual | O formulário sem aquela linha; nada é gravado |
 | POST | `/sales` | `customerId` (opcional), `items[i].productId`, `items[i].quantity` | Sucesso: redireciona para `/sales/{id}`. Recusa: formulário com a lista de motivos |
-| GET | `/sales/{id}` | | Detalhe com itens, preços praticados e total. 404 se não existir |
+| GET | `/sales/{id}` | | Detalhe com itens, preços praticados, total e situação. 404 se não existir |
+| POST | `/sales/{id}/cancel` | `reason` (obrigatório, até 200 caracteres) | Redireciona para `/sales/{id}`: sucesso com aviso verde; motivo ausente ou venda já cancelada com aviso vermelho. 404 se não existir |
 
-Vendas não têm edição, exclusão nem cancelamento.
+Vendas não têm edição nem exclusão; o cancelamento as mantém no histórico.
 
 ### Relatórios
 
@@ -108,6 +109,12 @@ sequenceDiagram
 2. O período vira o intervalo de instantes `[from 00:00, to + 1 dia 00:00)` no fuso `minierp.time-zone` (padrão `America/Sao_Paulo`). Assim, uma venda às 23:59 do último dia entra no relatório.
 3. A página mostra os dados na hora. O PDF passa os mesmos dados, já formatados, para `reports/sales.jrxml`, e o JasperReports exporta o arquivo.
 
+### Cancelamento
+
+1. A venda é lida com `SELECT ... FOR UPDATE`: um segundo cancelamento simultâneo espera e encontra a venda já cancelada.
+2. Os produtos são travados em ordem de id, como na venda, e cada item volta ao estoque, mesmo de produto inativo.
+3. A venda passa a `CANCELLED` com data e motivo; tudo na mesma transação. O relatório só considera vendas `CONFIRMED`.
+
 ### Exclusões
 
 Produto vendido e cliente com vendas não são excluídos: as vendas apontam para eles por FK. O serviço confere antes, e a FK garante caso uma venda aconteça no meio. Os dois casos viram o mesmo aviso. Para retirar um produto das vendas, desmarque "Ativo".
@@ -122,5 +129,5 @@ Produto vendido e cliente com vendas não são excluídos: as vendas apontam par
 | 4. Sem venda acima do estoque | `SaleService.create`, sob `ProductRepository.findAllForUpdate` |
 | 5. Venda e estoque na mesma transação | `@Transactional` em `SaleService.create` |
 | 6. Preço registrado no item | `sale_items.unit_price`, que não muda depois da venda |
-| 7. Cancelamento | Não implementado |
+| 7. Cancelamento | `SaleService.cancel`: trava a venda, devolve o estoque, grava motivo e data; `findForReport` só lê vendas `CONFIRMED` |
 | 8. Validação na web e no serviço | Bean Validation nos forms; o `SaleService` revalida tudo o que a venda usa |

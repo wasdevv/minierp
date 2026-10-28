@@ -7,7 +7,7 @@
     <div class="page-header">
         <div>
             <h1>Relatório de vendas</h1>
-            <p class="subtitle">Vendas e total vendido por período, com exportação em PDF</p>
+            <p class="subtitle">Vendas confirmadas e total vendido por período, com exportação em PDF. Vendas canceladas não entram.</p>
         </div>
         <a class="button button--pdf" th:if="${report}"
            th:href="@{/reports/sales.pdf(from=${from}, to=${to})}">Baixar PDF</a>

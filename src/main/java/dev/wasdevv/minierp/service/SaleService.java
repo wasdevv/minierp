@@ -32,6 +32,7 @@ public class SaleService {
     static final BigDecimal MAX_AMOUNT = new BigDecimal("9999999999.99");
     static final int MAX_LINES = 50;
     static final int MAX_QUANTITY = 100_000;
+    static final int MAX_REASON = 200;
 
     private final SaleRepository sales;
     private final ProductRepository products;
@@ -107,6 +108,32 @@ public class SaleService {
         sale.setSaleDate(OffsetDateTime.now(clock));
         sale.setTotalAmount(total);
         return sales.save(sale);
+    }
+
+    /**
+     * Cancels a confirmed sale and puts its items back in stock, atomically (README rule 7). The sale row is
+     * locked first, so a second cancellation waits and then finds the sale already cancelled; the products
+     * are locked in id order, like {@link #create}.
+     */
+    @Transactional
+    public Sale cancel(Long id, String reason) {
+        String why = reason == null ? "" : reason.strip();
+        if (why.isEmpty()) {
+            throw new SaleRejectedException("Informe o motivo do cancelamento.");
+        }
+        if (why.length() > MAX_REASON) {
+            throw new SaleRejectedException("O motivo pode ter no máximo " + MAX_REASON + " caracteres.");
+        }
+        Sale sale = sales.findForUpdate(id).orElseThrow(() -> new ResourceNotFoundException("Sale", id));
+        if (sale.isCancelled()) {
+            throw new SaleRejectedException("Esta venda já foi cancelada.");
+        }
+        Map<Long, Product> byId = products.findAllForUpdate(
+                        sale.getItems().stream().map(item -> item.getProduct().getId()).toList()).stream()
+                .collect(Collectors.toMap(Product::getId, Function.identity()));
+        sale.getItems().forEach(item -> byId.get(item.getProduct().getId()).addStock(item.getQuantity()));
+        sale.cancel(OffsetDateTime.now(clock), why);
+        return sale;
     }
 
     /** What the form shows as a running total. Indicative only: {@link #create} recomputes everything. */
