@@ -27,12 +27,18 @@
         <div class="kpi kpi--accent">
             <span class="kpi__label">Faturamento no mês</span>
             <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(d.month.revenue, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-            <span class="kpi__hint" th:text="|${d.month.sales} venda(s)|">0 venda(s)</span>
+            <span class="kpi__hint" th:text="|${d.month.sales} venda(s) · ticket médio R$ ${#numbers.formatDecimal(d.month.averageTicket(), 1, 'POINT', 2, 'COMMA')}|">0 venda(s)</span>
         </div>
-        <div class="kpi">
-            <span class="kpi__label">Ticket médio no mês</span>
-            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(d.month.averageTicket(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
-            <span class="kpi__hint">por venda confirmada</span>
+        <div class="kpi" th:classappend="${d.monthProfit.partial or d.monthProfit.unknown} ? 'kpi--partial'">
+            <span class="kpi__label">Lucro bruto no mês</span>
+            <strong class="kpi__value" th:if="${d.monthProfit.unknown}">—</strong>
+            <strong class="kpi__value" th:unless="${d.monthProfit.unknown}"
+                    th:text="${(d.monthProfit.amount.signum() < 0 ? '−R$ ' : 'R$ ') + #numbers.formatDecimal(d.monthProfit.amount.abs(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint" th:if="${d.monthProfit.unknown and d.monthProfit.salesWithoutCost > 0}">cadastre o custo dos produtos para ver o lucro</span>
+            <span class="kpi__hint" th:if="${d.monthProfit.unknown and d.monthProfit.salesWithoutCost == 0}">nenhuma venda confirmada no mês</span>
+            <span class="kpi__hint" th:if="${d.monthProfit.partial}"
+                  th:text="|parcial: ${d.monthProfit.salesWithoutCost} venda(s) com item sem custo ficaram de fora|">parcial</span>
+            <span class="kpi__hint" th:if="${!d.monthProfit.unknown and !d.monthProfit.partial}">total pago menos o custo dos itens</span>
         </div>
         <a class="kpi kpi--link" th:href="@{/products(filter='low-stock')}" th:classappend="${!#lists.isEmpty(d.lowStock)} ? 'kpi--warn'">
             <span class="kpi__label">Estoque baixo</span>
@@ -103,7 +109,7 @@
                 <a th:href="@{/products/{id}/edit(id=${p.id})}">
                     <span><strong th:text="${p.name}">Produto</strong> <span class="muted" th:text="${p.sku}">SKU</span></span>
                     <span th:class="${p.stockQuantity == 0} ? 'pill pill--danger' : 'stock-low'"
-                          th:text="${p.stockQuantity == 0} ? 'Sem estoque' : ${p.stockQuantity}">0</span>
+                          th:text="${p.stockQuantity == 0} ? 'Sem estoque' : |${p.stockQuantity} / mín. ${p.minStock}|">0</span>
                 </a>
             </li>
         </ul>

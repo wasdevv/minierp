@@ -139,14 +139,14 @@ class ProductServiceTest {
     void searchEscapesLikeWildcards() {
         service.search("  50%_off\\ ", ProductFilter.ALL, Pageable.unpaged());
 
-        verify(products).search("50\\%\\_off\\\\", false, Product.LOW_STOCK, false, Pageable.unpaged());
+        verify(products).search("50\\%\\_off\\\\", false, false, Pageable.unpaged());
     }
 
     @Test
     void filterWithoutSearchTermStillFilters() {
         service.search(null, ProductFilter.LOW_STOCK, Pageable.unpaged());
 
-        verify(products).search("", true, Product.LOW_STOCK, false, Pageable.unpaged());
+        verify(products).search("", true, false, Pageable.unpaged());
     }
 
     @Test

@@ -17,7 +17,24 @@ public record Dashboard(
         List<Product> lowStock,
         List<Sale> recentSales,
         long activeProducts,
-        long customers) {
+        long customers,
+        Profit monthProfit) {
+
+    /**
+     * Gross profit of the month over the sales whose items all have a cost: what was paid (after discount)
+     * minus the cost of the items. Sales with an item without cost are left out and counted, so a partial
+     * figure is never shown as the whole, and {@code amount} is {@code null} when no sale could be counted.
+     */
+    public record Profit(BigDecimal amount, long salesWithoutCost) {
+
+        public boolean isPartial() {
+            return amount != null && salesWithoutCost > 0;
+        }
+
+        public boolean isUnknown() {
+            return amount == null;
+        }
+    }
 
     public record Period(long sales, BigDecimal revenue) {
 

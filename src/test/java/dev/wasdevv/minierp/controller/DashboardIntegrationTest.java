@@ -48,7 +48,7 @@ class DashboardIntegrationTest extends IntegrationTest {
 
         assertThat(kpi(html, "Faturamento hoje")).isEqualTo("R$ 15,00");
         assertThat(html).contains("2 venda(s)").doesNotContain("Bem-vindo");
-        assertThat(kpi(html, "Ticket médio no mês")).isEqualTo("R$ 7,50");
+        assertThat(html).contains("ticket médio R$ 7,50");
     }
 
     @Test

@@ -37,6 +37,10 @@ public class SaleItem {
     @Column(nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal subtotal;
 
+    /** The product's cost at the time of the sale; {@code null} if it had none. */
+    @Column(name = "unit_cost", precision = 12, scale = 2, updatable = false)
+    private BigDecimal unitCost;
+
     protected SaleItem() {
     }
 
@@ -45,6 +49,7 @@ public class SaleItem {
         this.quantity = quantity;
         this.unitPrice = product.getPrice();
         this.subtotal = unitPrice.multiply(BigDecimal.valueOf(quantity));
+        this.unitCost = product.getCostPrice();
     }
 
     void setSale(Sale sale) {
@@ -73,5 +78,9 @@ public class SaleItem {
 
     public BigDecimal getSubtotal() {
         return subtotal;
+    }
+
+    public BigDecimal getUnitCost() {
+        return unitCost;
     }
 }

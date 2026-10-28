@@ -24,7 +24,7 @@
     <nav class="chips" aria-label="Filtrar produtos">
         <a th:each="f : ${filters}" th:href="@{/products(q=${#strings.isEmpty(q)} ? null : ${q}, filter=${f.name() == 'ALL'} ? null : ${f.param})}"
            th:attr="aria-current=${f == filter} ? 'true' : null"
-           th:text="${f.name() == 'ALL'} ? 'Todos' : (${f.name() == 'LOW_STOCK'} ? |Estoque baixo (até ${lowStock})| : 'Inativos')">Todos</a>
+           th:text="${f.name() == 'ALL'} ? 'Todos' : (${f.name() == 'LOW_STOCK'} ? 'Estoque baixo' : 'Inativos')">Todos</a>
     </nav>
 
     <div th:if="${page.empty}" class="empty">
@@ -40,6 +40,7 @@
             <th>SKU</th>
             <th>Nome</th>
             <th class="num">Preço</th>
+            <th class="num">Margem</th>
             <th class="num">Estoque</th>
             <th>Situação</th>
             <th class="num"><span class="visually-hidden">Ações</span></th>
@@ -50,9 +51,12 @@
             <td th:text="${p.sku}">SKU-1</td>
             <td th:text="${p.name}">Produto</td>
             <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            <td class="num" th:classappend="${p.marginPercent == null} ? 'muted'"
+                th:text="${p.marginPercent} ? |${#numbers.formatDecimal(p.marginPercent, 1, 'POINT', 1, 'COMMA')}%| : '—'"
+                th:title="${p.costPrice} ? |Custo R$ ${#numbers.formatDecimal(p.costPrice, 1, 'POINT', 2, 'COMMA')}| : 'Sem custo cadastrado'">—</td>
             <td class="num">
-                <span th:if="${p.stockQuantity <= lowStock}" class="stock-low" title="Estoque baixo" th:text="${p.stockQuantity}">0</span>
-                <span th:unless="${p.stockQuantity <= lowStock}" th:text="${p.stockQuantity}">0</span>
+                <span th:if="${p.lowStock}" class="stock-low" th:title="|Estoque baixo: mínimo ${p.minStock}|" th:text="${p.stockQuantity}">0</span>
+                <span th:unless="${p.lowStock}" th:text="${p.stockQuantity}">0</span>
             </td>
             <td>
                 <span th:if="${p.active}" class="pill">Ativo</span>

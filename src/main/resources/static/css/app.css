@@ -1069,3 +1069,5 @@ a.rows__main:hover strong { color: var(--primary); }
 
 /* WhatsApp: verde da marca sobre o botão escuro */
 .whatsapp-button { color: #25d366 !important; }
+
+.kpi--partial .kpi__hint { color: var(--warn); }
