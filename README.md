@@ -6,6 +6,7 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
+[![ci](https://github.com/wasdevv/minierp/actions/workflows/ci.yml/badge.svg)](https://github.com/wasdevv/minierp/actions/workflows/ci.yml)
 
 O **Mini ERP** é uma aplicação de exemplo para pequenas operações comerciais. A proposta é centralizar o cadastro de produtos, clientes e vendas, acompanhar movimentações básicas de estoque e gerar relatórios de vendas em PDF.
 
@@ -285,6 +286,13 @@ MINIERP_TEST_DB_USER=postgres MINIERP_TEST_DB_PASSWORD=... ./mvnw test
 
 O banco de teste é limpo antes de cada teste: não aponte para um banco com dados que importam.
 
+### CI
+
+`.github/workflows/ci.yml` roda em todo PR e em push na `main`:
+
+- **test**: `./mvnw verify` contra um PostgreSQL 17 de serviço, com o mínimo de cobertura, e falha se algum teste tiver sido pulado. O relatório do JaCoCo fica como artefato `coverage-report`.
+- **compose**: `docker compose up --build` como no README, cadastra um produto, registra uma venda, confere a baixa de estoque, baixa o PDF do relatório e verifica que o banco de teste foi criado.
+
 ### Cobertura
 
 O JaCoCo gera o relatório em `target/site/jacoco/index.html` a cada `test`. O `verify` também exige no mínimo **95% de linhas e 90% de branches**:
@@ -340,7 +348,7 @@ Rotas, parâmetros e respostas, o fluxo de venda com baixa de estoque (com diagr
 - [x] Adicionar Docker Compose para desenvolvimento, se útil.
 - [x] Criar screenshots reais da interface.
 - [x] Documentar endpoints ou fluxos principais.
-- [ ] Configurar CI para executar os testes.
+- [x] Configurar CI para executar os testes.
 
 ## Screenshots
 
