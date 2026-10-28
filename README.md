@@ -332,27 +332,43 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 - [x] Criar relatório de vendas em PDF.
 - [x] Adicionar testes unitários e de integração.
 - [x] Adicionar Docker Compose para desenvolvimento, se útil.
-- [ ] Criar screenshots reais da interface.
+- [x] Criar screenshots reais da interface.
 - [ ] Documentar endpoints ou fluxos principais.
 - [ ] Configurar CI para executar os testes.
 
 ## Screenshots
 
-Adicione capturas reais da aplicação nesta seção quando a interface estiver pronta.
+Capturas reais da aplicação, com dados fictícios. Para gerar de novo: `scripts/screenshots.sh`, com as variáveis no cabeçalho do script. Ele recria um banco descartável, cadastra os dados pelos próprios formulários, passando pela validação e pela baixa de estoque, e captura as telas com Chrome headless.
 
-```text
-docs/
-└── screenshots/
-    ├── dashboard.png
-    ├── products.png
-    └── sales-report.png
-```
+**Produtos**: busca, estoque baixo destacado e situação.
 
-Exemplo de inclusão no Markdown, depois de adicionar a imagem ao repositório:
+![Produtos](docs/screenshots/products.png)
 
-```markdown
-![Tela de produtos](docs/screenshots/products.png)
-```
+**Nova venda**: itens adicionados pelo servidor e total estimado.
+
+![Nova venda](docs/screenshots/sale-form.png)
+
+**Detalhe da venda**: preço praticado por item e total.
+
+![Detalhe da venda](docs/screenshots/sale-detail.png)
+
+**Vendas**
+
+![Vendas](docs/screenshots/sales.png)
+
+**Clientes**: CPF/CNPJ mascarado na listagem.
+
+![Clientes](docs/screenshots/customers.png)
+
+**Relatório de vendas**: na tela e em PDF.
+
+![Relatório de vendas](docs/screenshots/sales-report.png)
+
+<img src="docs/screenshots/sales-report-pdf.png" alt="Relatório de vendas em PDF" width="480">
+
+**Celular (390 px)**
+
+<img src="docs/screenshots/products-mobile.png" alt="Produtos no celular" width="300">
 
 ## Como contribuir
 
