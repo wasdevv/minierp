@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import dev.wasdevv.minierp.dto.SaleForm;
 import dev.wasdevv.minierp.dto.SaleItemForm;
 import dev.wasdevv.minierp.exception.SaleRejectedException;
+import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.model.Sale;
 import dev.wasdevv.minierp.repository.ProductRepository;
@@ -175,6 +176,7 @@ class SaleCancellationIntegrationTest extends IntegrationTest {
 
     private static SaleForm form(SaleItemForm... lines) {
         SaleForm form = new SaleForm();
+        form.setPaymentMethod(PaymentMethod.PIX);
         form.setItems(new ArrayList<>(List.of(lines)));
         return form;
     }

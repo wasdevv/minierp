@@ -46,7 +46,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
         Product notebook = product("Caderno", "CD-96", "14.90", true);
         Customer maria = customer("Maria Souza");
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("customerId", maria.getId().toString())
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "4")
@@ -98,7 +98,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
 
     @Test
     void rejectsSaleWithoutItems() throws Exception {
-        mvc.perform(post("/sales").param("items[0].productId", "").param("items[0].quantity", ""))
+        mvc.perform(post("/sales").param("paymentMethod", "PIX").param("items[0].productId", "").param("items[0].quantity", ""))
                 .andExpect(status().isOk())
                 .andExpect(view().name("sales/form"))
                 .andExpect(content().string(containsString("Adicione ao menos um item à venda.")));
@@ -110,13 +110,13 @@ class SaleControllerIntegrationTest extends IntegrationTest {
     void rejectsInvalidQuantitiesAndKeepsWhatWasTyped() throws Exception {
         Product pen = product("Caneta", "CN-01", "2.50", true);
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "0"))
                 .andExpect(content().string(containsString("Item 1: a quantidade deve ser maior que zero.")))
                 .andExpect(content().string(containsString("value=\"0\"")));
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "abc"))
                 .andExpect(status().isOk())
@@ -127,7 +127,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
 
     @Test
     void tamperedProductAndCustomerIdsGetReadableMessages() throws Exception {
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("customerId", "abc")
                         .param("items[0].productId", "x")
                         .param("items[0].quantity", "1"))
@@ -142,7 +142,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
     void removingTheLastRowLeavesAnEmptyOne() throws Exception {
         product("Caneta", "CN-01", "2.50", true);
 
-        mvc.perform(post("/sales").param("removeItem", "0").param("items[0].productId", "").param("items[0].quantity", ""))
+        mvc.perform(post("/sales").param("paymentMethod", "PIX").param("removeItem", "0").param("items[0].productId", "").param("items[0].quantity", ""))
                 .andExpect(content().string(containsString("name=\"items[0].productId\"")));
     }
 
@@ -150,7 +150,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
     void rejectsInactiveProduct() throws Exception {
         Product old = product("Caneta antiga", "CN-00", "1.00", false);
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("items[0].productId", old.getId().toString())
                         .param("items[0].quantity", "1"))
                 .andExpect(content().string(containsString("O produto Caneta antiga está inativo e não pode ser vendido.")));
@@ -174,7 +174,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
     void addAndRemoveRowsWithoutSaving() throws Exception {
         Product pen = product("Caneta", "CN-01", "2.50", true);
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("addItem", "1")
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "3"))
@@ -182,7 +182,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
                 .andExpect(content().string(containsString("name=\"items[1].productId\"")))
                 .andExpect(content().string(containsString("R$ 7,50")));
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("removeItem", "0")
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "3")
@@ -245,7 +245,7 @@ class SaleControllerIntegrationTest extends IntegrationTest {
     }
 
     private Long createSale(Customer customer, Product product, int quantity) throws Exception {
-        var request = post("/sales")
+        var request = post("/sales").param("paymentMethod", "PIX")
                 .param("items[0].productId", product.getId().toString())
                 .param("items[0].quantity", String.valueOf(quantity));
         if (customer != null) {

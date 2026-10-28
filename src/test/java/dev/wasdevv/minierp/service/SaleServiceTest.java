@@ -11,6 +11,7 @@ import static org.mockito.Mockito.when;
 import dev.wasdevv.minierp.dto.SaleForm;
 import dev.wasdevv.minierp.dto.SaleItemForm;
 import dev.wasdevv.minierp.exception.SaleRejectedException;
+import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.model.Sale;
 import dev.wasdevv.minierp.repository.CustomerRepository;
@@ -221,6 +222,7 @@ class SaleServiceTest {
 
     private static SaleForm form(Long customerId, SaleItemForm... lines) {
         SaleForm form = new SaleForm();
+        form.setPaymentMethod(PaymentMethod.PIX);
         form.setCustomerId(customerId);
         form.setItems(new ArrayList<>(List.of(lines)));
         return form;

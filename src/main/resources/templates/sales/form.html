@@ -48,11 +48,42 @@
             <button type="submit" class="ghost" name="addItem" value="1" formnovalidate>+ Adicionar item</button>
         </div>
 
-        <div class="sale-total">
-            <span>Total estimado</span>
-            <strong data-total th:text="${'R$ ' + #numbers.formatDecimal(estimatedTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+        <p class="section-label">Pagamento</p>
+        <div class="payment">
+            <fieldset class="payment__methods">
+                <legend class="visually-hidden">Forma de pagamento</legend>
+                <label class="choice" th:each="m : ${paymentMethods}">
+                    <input type="radio" th:field="*{paymentMethod}" th:value="${m}" data-payment>
+                    <span th:text="${m.label}">Pix</span>
+                </label>
+            </fieldset>
+            <p class="muted hint" data-on-account-hint>Fiado exige um cliente escolhido acima.</p>
+
+            <div class="payment__row">
+                <div>
+                    <label for="discountValue">Desconto <span class="muted">(opcional)</span></label>
+                    <div class="input-group">
+                        <input id="discountValue" type="number" th:field="*{discountValue}" min="0" step="0.01" placeholder="0,00" data-discount>
+                        <select th:field="*{discountType}" aria-label="Tipo de desconto" data-discount-type>
+                            <option value="AMOUNT">R$</option>
+                            <option value="PERCENT">%</option>
+                        </select>
+                    </div>
+                </div>
+                <div data-cash>
+                    <label for="amountReceived">Valor recebido <span class="muted">(dinheiro)</span></label>
+                    <input id="amountReceived" type="number" th:field="*{amountReceived}" min="0" step="0.01" placeholder="Para calcular o troco" data-received>
+                </div>
+            </div>
         </div>
-        <p class="muted hint">Ao registrar, o servidor recalcula o total com os preços atuais e baixa o estoque.</p>
+
+        <dl class="sale-summary">
+            <div><dt>Subtotal</dt><dd data-subtotal-total th:text="${'R$ ' + #numbers.formatDecimal(estimatedSubtotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</dd></div>
+            <div><dt>Desconto</dt><dd data-discount-total th:text="${'− R$ ' + #numbers.formatDecimal(estimatedDiscount, 1, 'POINT', 2, 'COMMA')}">− R$ 0,00</dd></div>
+            <div class="sale-summary__total"><dt>Total</dt><dd data-total th:text="${'R$ ' + #numbers.formatDecimal(estimatedTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</dd></div>
+            <div data-change-row hidden><dt>Troco</dt><dd data-change>R$ 0,00</dd></div>
+        </dl>
+        <p class="muted hint">Ao registrar, o servidor recalcula tudo com os preços atuais e baixa o estoque.</p>
 
         <div class="form-actions">
             <button type="submit">Registrar venda</button>

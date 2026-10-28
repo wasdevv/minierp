@@ -11,6 +11,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import dev.wasdevv.minierp.dto.SaleForm;
 import dev.wasdevv.minierp.dto.SaleItemForm;
 import dev.wasdevv.minierp.exception.SaleRejectedException;
+import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.repository.ProductRepository;
 import dev.wasdevv.minierp.repository.SaleRepository;
@@ -49,7 +50,7 @@ class StockIntegrationTest extends IntegrationTest {
         Product pen = product("Caneta", "CN-01", "2.50", 10);
         Product notebook = product("Caderno", "CD-96", "14.90", 4);
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "3")
                         .param("items[1].productId", notebook.getId().toString())
@@ -65,7 +66,7 @@ class StockIntegrationTest extends IntegrationTest {
         Product pen = product("Caneta", "CN-01", "2.50", 10);
         Product notebook = product("Caderno", "CD-96", "14.90", 2);
 
-        mvc.perform(post("/sales")
+        mvc.perform(post("/sales").param("paymentMethod", "PIX")
                         .param("items[0].productId", pen.getId().toString())
                         .param("items[0].quantity", "3")
                         .param("items[1].productId", notebook.getId().toString())
@@ -167,6 +168,7 @@ class StockIntegrationTest extends IntegrationTest {
 
     private static SaleForm form(SaleItemForm... lines) {
         SaleForm form = new SaleForm();
+        form.setPaymentMethod(PaymentMethod.PIX);
         form.setItems(new ArrayList<>(List.of(lines)));
         return form;
     }

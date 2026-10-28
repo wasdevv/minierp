@@ -141,8 +141,8 @@ class ReportControllerIntegrationTest extends IntegrationTest {
 
     private long sale(Long customerId, String instant, int quantity) {
         BigDecimal total = new BigDecimal("2.50").multiply(BigDecimal.valueOf(quantity));
-        long id = jdbc.queryForObject("insert into sales (customer_id, sale_date, total_amount) values (?, ?, ?) returning id",
-                Long.class, customerId, OffsetDateTime.parse(instant), total);
+        long id = jdbc.queryForObject("insert into sales (customer_id, sale_date, subtotal_amount, total_amount) values (?, ?, ?, ?) returning id",
+                Long.class, customerId, OffsetDateTime.parse(instant), total, total);
         jdbc.update("insert into sale_items (sale_id, product_id, quantity, unit_price, subtotal) values (?, ?, ?, 2.50, ?)",
                 id, productId, quantity, total);
         return id;

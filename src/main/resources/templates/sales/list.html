@@ -28,6 +28,7 @@
             <th>Data</th>
             <th class="num">Itens</th>
             <th class="num">Total</th>
+            <th>Pagamento</th>
             <th>Situação</th>
             <th class="num"><span class="visually-hidden">Ações</span></th>
         </tr>
@@ -39,6 +40,7 @@
             <td th:text="${#temporals.format(s.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
             <td class="num" th:text="${s.unitCount}">1</td>
             <td class="num" th:classappend="${s.cancelled} ? 'struck'" th:text="${'R$ ' + #numbers.formatDecimal(s.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            <td class="muted" th:text="${s.paymentMethod} ? ${s.paymentMethod.label} : '—'">Pix</td>
             <td><span th:replace="~{fragments/layout :: saleStatus(${s})}"></span></td>
             <td class="actions"><a th:href="@{/sales/{id}(id=${s.id})}">Ver</a></td>
         </tr>

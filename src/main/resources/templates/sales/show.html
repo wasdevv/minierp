@@ -46,12 +46,26 @@
         </tr>
         </tbody>
         <tfoot>
+        <tr th:if="${sale.hasDiscount()}">
+            <td colspan="4" class="num">Subtotal</td>
+            <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(sale.subtotalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+        </tr>
+        <tr th:if="${sale.hasDiscount()}">
+            <td colspan="4" class="num">Desconto</td>
+            <td class="num qty-out" th:text="${'− R$ ' + #numbers.formatDecimal(sale.discountAmount, 1, 'POINT', 2, 'COMMA')}">− R$ 0,00</td>
+        </tr>
         <tr>
             <td colspan="4" class="num">Total</td>
             <td class="num total" th:text="${'R$ ' + #numbers.formatDecimal(sale.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
         </tr>
         </tfoot>
     </table>
+    <div class="payment-info">
+        <div><span>Pagamento</span><strong th:text="${sale.paymentMethod} ? ${sale.paymentMethod.label} : 'Não informado'">Pix</strong></div>
+        <div th:if="${sale.amountReceived}"><span>Recebido</span><strong th:text="${'R$ ' + #numbers.formatDecimal(sale.amountReceived, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong></div>
+        <div th:if="${sale.changeAmount}"><span>Troco</span><strong th:text="${'R$ ' + #numbers.formatDecimal(sale.changeAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong></div>
+    </div>
+
     <form th:unless="${sale.cancelled}" class="form cancel-sale" method="post"
           th:action="@{/sales/{id}/cancel(id=${sale.id})}"
           onsubmit="return confirm('Cancelar esta venda? Os itens voltam para o estoque.');">

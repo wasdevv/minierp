@@ -5,6 +5,8 @@ import dev.wasdevv.minierp.dto.SaleItemForm;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
 import dev.wasdevv.minierp.exception.SaleRejectedException;
 import dev.wasdevv.minierp.model.Customer;
+import dev.wasdevv.minierp.model.Money;
+import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.model.Sale;
 import dev.wasdevv.minierp.model.SaleItem;
@@ -12,6 +14,7 @@ import dev.wasdevv.minierp.repository.CustomerRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
 import dev.wasdevv.minierp.repository.SaleRepository;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -101,6 +104,9 @@ public class SaleService {
         if (form.getCustomerId() != null && customer == null) {
             problems.add("O cliente escolhido não existe mais.");
         }
+        BigDecimal discount = discount(form, total, problems);
+        BigDecimal toPay = total.subtract(discount);
+        BigDecimal received = payment(form, customer, toPay, problems);
         if (!problems.isEmpty()) {
             throw new SaleRejectedException(problems);
         }
@@ -109,7 +115,8 @@ public class SaleService {
         sale.getItems().forEach(item -> item.getProduct().removeStock(item.getQuantity()));
         sale.setCustomer(customer);
         sale.setSaleDate(OffsetDateTime.now(clock));
-        sale.setTotalAmount(total);
+        sale.price(total, discount);
+        sale.pay(form.getPaymentMethod(), received);
         Sale saved = sales.save(sale);
         stock.recordSale(saved);
         return saved;
@@ -157,6 +164,63 @@ public class SaleService {
             }
         }
         return total;
+    }
+
+    /** The discount in reais: a value or a percentage of the subtotal, never more than the subtotal. */
+    public static BigDecimal discount(SaleForm form, BigDecimal subtotal, List<String> problems) {
+        BigDecimal value = form.getDiscountValue();
+        if (value == null || value.signum() == 0) {
+            return BigDecimal.ZERO;
+        }
+        if (value.signum() < 0) {
+            problems.add("O desconto não pode ser negativo.");
+            return BigDecimal.ZERO;
+        }
+        if (form.isPercentDiscount()) {
+            if (value.compareTo(BigDecimal.valueOf(100)) > 0) {
+                problems.add("O desconto pode ser de no máximo 100%.");
+                return BigDecimal.ZERO;
+            }
+            return subtotal.multiply(value).divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        if (value.scale() > 2 && value.stripTrailingZeros().scale() > 2) {
+            problems.add("Use no máximo 2 casas decimais no desconto.");
+            return BigDecimal.ZERO;
+        }
+        if (value.compareTo(subtotal) > 0) {
+            problems.add("O desconto não pode passar do subtotal da venda.");
+            return BigDecimal.ZERO;
+        }
+        return value.setScale(2, RoundingMode.UNNECESSARY);
+    }
+
+    /** Validates the payment method and returns the cash received (or {@code null}). */
+    private static BigDecimal payment(SaleForm form, Customer customer, BigDecimal toPay, List<String> problems) {
+        PaymentMethod method = form.getPaymentMethod();
+        if (method == null) {
+            problems.add("Escolha a forma de pagamento.");
+            return null;
+        }
+        if (method == PaymentMethod.ON_ACCOUNT && customer == null && form.getCustomerId() == null) {
+            problems.add("Venda fiado precisa de um cliente, para saber quem vai pagar.");
+        }
+        BigDecimal received = form.getAmountReceived();
+        if (method != PaymentMethod.CASH || received == null) {
+            return null;
+        }
+        if (received.stripTrailingZeros().scale() > 2) {
+            problems.add("Use no máximo 2 casas decimais no valor recebido.");
+            return null;
+        }
+        if (received.compareTo(toPay) < 0) {
+            problems.add("O valor recebido (" + Money.format(received) + ") é menor que o total (" + Money.format(toPay) + ").");
+            return null;
+        }
+        if (received.compareTo(MAX_AMOUNT) > 0) {
+            problems.add("O valor recebido é grande demais.");
+            return null;
+        }
+        return received.setScale(2, RoundingMode.UNNECESSARY);
     }
 
     /** Product id to quantity, in form order, after the per-line checks. */
