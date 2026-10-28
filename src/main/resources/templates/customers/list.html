@@ -15,7 +15,7 @@
     <div th:replace="~{fragments/layout :: notice}"></div>
 
     <form class="search" method="get" th:action="@{/customers}" role="search">
-        <input type="search" name="q" th:value="${q}" placeholder="Buscar por nome, e-mail ou CPF/CNPJ completo" aria-label="Buscar clientes">
+        <input type="search" name="q" th:value="${q}" placeholder="Nome, e-mail ou CPF/CNPJ completo" aria-label="Buscar clientes">
         <button type="submit">Buscar</button>
         <a th:if="${!#strings.isEmpty(q)}" th:href="@{/customers}">Limpar</a>
     </form>

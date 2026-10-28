@@ -691,3 +691,15 @@ form.search.period input {
 .stat--period strong { font-size: 17px; white-space: nowrap; }
 tbody td:first-child a { font-weight: 600; text-decoration: none; }
 tbody td:first-child a:hover { text-decoration: underline; }
+
+/* ==========================================================
+   Ajustes de telas estreitas (vistos nos screenshots de 390px)
+   ========================================================== */
+
+header.topbar .brand { flex-shrink: 0; white-space: nowrap; }
+header.topbar nav { min-width: 0; overflow-x: auto; scrollbar-width: none; }
+header.topbar nav a { white-space: nowrap; }
+
+@media (max-width: 720px) {
+  td.num, th.num, tbody td:first-child { white-space: nowrap; }
+}
