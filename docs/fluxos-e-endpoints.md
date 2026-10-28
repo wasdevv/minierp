@@ -26,6 +26,16 @@ O Mini ERP é uma aplicação web server-side: cada endpoint devolve uma página
 | POST | `/products/{id}` | os do cadastro, mais `version` | Sucesso: redireciona para `/products`. Versão desatualizada: redireciona para a edição com aviso |
 | POST | `/products/{id}/delete` | | Redireciona para `/products`. Produto já vendido: aviso, nada é excluído |
 
+### Estoque
+
+| Método | Caminho | Parâmetros | Resposta |
+|---|---|---|---|
+| GET | `/stock` | `productId`, `type` (`INITIAL`, `RECEIPT`, `ADJUSTMENT`, `SALE`, `CANCELLATION`), `page` | Formulários de entrada e de ajuste e o histórico de movimentações, mais recentes primeiro |
+| POST | `/stock/receipts` | `productId`, `quantity` (> 0), `reason` (opcional: nota, fornecedor) | Redireciona para `/stock?productId=…` com aviso; quantidade inválida volta com alerta |
+| POST | `/stock/adjustments` | `productId`, `counted` (quantidade contada, ≥ 0), `reason` (obrigatório) | Ajusta o estoque para o valor contado e registra a diferença |
+
+O estoque de um produto só muda por estoque inicial (no cadastro), entrada, ajuste, venda e cancelamento; a edição do produto não mexe nele. Cada mudança grava em `stock_movements` o tipo, a quantidade com sinal, o saldo que deixou, o motivo, a venda (quando houver), a data e o usuário.
+
 ### Clientes
 
 | Método | Caminho | Parâmetros | Resposta |

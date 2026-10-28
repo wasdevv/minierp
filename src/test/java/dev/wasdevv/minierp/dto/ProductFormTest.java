@@ -2,9 +2,11 @@ package dev.wasdevv.minierp.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import dev.wasdevv.minierp.model.Product;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
+import jakarta.validation.groups.Default;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -89,6 +91,27 @@ class ProductFormTest {
     }
 
     @Test
+    void editFormDoesNotValidateStock() {
+        ProductForm form = valid();
+        form.setStockQuantity(null);
+
+        assertThat(validator.validate(form)).as("Default group only, as the edit form validates").isEmpty();
+    }
+
+    @Test
+    void applyToNeverTouchesStock() {
+        ProductForm form = valid();
+        form.setStockQuantity(999);
+        Product product = new Product();
+        product.setStockQuantity(7);
+
+        form.applyTo(product);
+
+        assertThat(product.getStockQuantity()).isEqualTo(7);
+        assertThat(form.initialStock()).isEqualTo(999);
+    }
+
+    @Test
     void rejectsSkuWithSpacesOrSymbols() {
         ProductForm form = valid();
         form.setSku("CN 01");
@@ -114,7 +137,8 @@ class ProductFormTest {
     }
 
     private static Set<String> invalidFields(ProductForm form) {
-        Set<ConstraintViolation<ProductForm>> violations = validator.validate(form);
+        // The creation form: Default plus the stock fields of OnCreate.
+        Set<ConstraintViolation<ProductForm>> violations = validator.validate(form, Default.class, ProductForm.OnCreate.class);
         return violations.stream().map(v -> v.getPropertyPath().toString()).collect(Collectors.toSet());
     }
 }

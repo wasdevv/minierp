@@ -38,6 +38,9 @@ class ProductServiceTest {
     @Mock
     private SaleItemRepository saleItems;
 
+    @Mock
+    private StockService stock;
+
     @InjectMocks
     private ProductService service;
 

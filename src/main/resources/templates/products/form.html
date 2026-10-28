@@ -33,10 +33,18 @@
                 <input id="price" type="number" th:field="*{price}" min="0" step="0.01" placeholder="19.90" required th:errorclass="invalid">
                 <p class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></p>
             </div>
-            <div>
-                <label for="stockQuantity">Estoque</label>
+            <div th:if="${productId == null}">
+                <label for="stockQuantity">Estoque inicial</label>
                 <input id="stockQuantity" type="number" th:field="*{stockQuantity}" min="0" step="1" required th:errorclass="invalid">
                 <p class="field-error" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}"></p>
+            </div>
+            <div th:unless="${productId == null}">
+                <span class="label">Estoque</span>
+                <p class="readonly-field">
+                    <strong th:text="|*{stockQuantity} un.|">0 un.</strong>
+                    <a th:href="@{/stock(productId=${productId})}">Entrada / ajuste</a>
+                </p>
+                <p class="muted hint">O estoque muda por entrada, ajuste ou venda, e cada mudança fica no histórico.</p>
             </div>
         </div>
 

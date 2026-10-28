@@ -43,7 +43,7 @@ public abstract class IntegrationTest {
 
     @BeforeEach
     void cleanDatabase() {
-        jdbc.execute("TRUNCATE sale_items, sales, products, customers RESTART IDENTITY");
+        jdbc.execute("TRUNCATE stock_movements, sale_items, sales, products, customers RESTART IDENTITY");
     }
 
     @TestConfiguration

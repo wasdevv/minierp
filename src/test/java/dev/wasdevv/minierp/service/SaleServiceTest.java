@@ -45,11 +45,14 @@ class SaleServiceTest {
     @Mock
     private CustomerRepository customers;
 
+    @Mock
+    private StockService stock;
+
     private SaleService service;
 
     @BeforeEach
     void setUp() {
-        service = new SaleService(sales, products, customers, Clock.fixed(NOW, ZoneOffset.UTC));
+        service = new SaleService(sales, products, customers, stock, Clock.fixed(NOW, ZoneOffset.UTC));
     }
 
     @Test

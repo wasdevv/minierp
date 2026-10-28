@@ -156,7 +156,8 @@ class ProductControllerIntegrationTest extends IntegrationTest {
         Product updated = products.findById(product.getId()).orElseThrow();
         assertThat(updated.getName()).isEqualTo("Caneta preta");
         assertThat(updated.getPrice()).isEqualByComparingTo("3.10");
-        assertThat(updated.getStockQuantity()).isEqualTo(4);
+        assertThat(updated.getStockQuantity()).as("editing never changes stock, even if a stock value is posted")
+                .isEqualTo(10);
         assertThat(updated.isActive()).as("unchecked checkbox deactivates").isFalse();
     }
 

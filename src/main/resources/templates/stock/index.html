@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Estoque')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('stock')}"></header>
+<main>
+    <div class="page-header">
+        <div>
+            <h1>Estoque</h1>
+            <p class="subtitle">Entrada de mercadoria, ajuste por contagem e histórico de movimentações</p>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <div class="grid-2 stock-forms">
+        <form class="form" method="post" th:action="@{/stock/receipts}">
+            <p class="section-label">Entrada de mercadoria</p>
+            <label for="receipt-product">Produto</label>
+            <select id="receipt-product" name="productId" required>
+                <option value="">Escolha um produto</option>
+                <option th:each="p : ${products}" th:value="${p.id}" th:selected="${p.id == productId}"
+                        th:text="|${p.name} · ${p.sku} · ${p.stockQuantity} un.${p.active ? '' : ' · inativo'}|">Produto</option>
+            </select>
+            <label for="receipt-quantity">Quantidade recebida</label>
+            <input id="receipt-quantity" type="number" name="quantity" min="1" step="1" required placeholder="Ex.: 24">
+            <label for="receipt-reason">Origem <span class="muted">(opcional)</span></label>
+            <input id="receipt-reason" type="text" name="reason" maxlength="200" placeholder="Ex.: NF 1234 · Fornecedor Exemplo">
+            <div class="form-actions">
+                <button type="submit">Registrar entrada</button>
+            </div>
+        </form>
+
+        <form class="form" method="post" th:action="@{/stock/adjustments}">
+            <p class="section-label">Ajuste por contagem</p>
+            <label for="adjust-product">Produto</label>
+            <select id="adjust-product" name="productId" required>
+                <option value="">Escolha um produto</option>
+                <option th:each="p : ${products}" th:value="${p.id}" th:selected="${p.id == productId}"
+                        th:text="|${p.name} · ${p.sku} · ${p.stockQuantity} un.|">Produto</option>
+            </select>
+            <label for="adjust-counted">Quantidade contada</label>
+            <input id="adjust-counted" type="number" name="counted" min="0" step="1" required placeholder="Quanto há de fato na prateleira">
+            <label for="adjust-reason">Motivo</label>
+            <input id="adjust-reason" type="text" name="reason" maxlength="200" required placeholder="Ex.: inventário mensal, avaria, perda">
+            <div class="form-actions">
+                <button type="submit">Ajustar estoque</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="card__header history-header">
+        <h2 th:text="${product} ? |Histórico de ${product.name}| : 'Histórico de movimentações'">Histórico</h2>
+        <a th:if="${productId}" th:href="@{/stock}">Ver todos os produtos</a>
+    </div>
+
+    <nav class="chips" aria-label="Filtrar por tipo">
+        <a th:href="@{/stock(productId=${productId})}" th:attr="aria-current=${type == null} ? 'true' : null">Todos</a>
+        <a th:each="t : ${types}" th:href="@{/stock(productId=${productId}, type=${t.name()})}"
+           th:attr="aria-current=${t == type} ? 'true' : null" th:text="${t.label}">Tipo</a>
+    </nav>
+
+    <div th:if="${page.empty}" class="empty">
+        <strong>Nenhuma movimentação.</strong>
+        <span>Entradas, ajustes, vendas e cancelamentos aparecem aqui.</span>
+    </div>
+
+    <table th:unless="${page.empty}">
+        <thead>
+        <tr>
+            <th>Data</th>
+            <th>Produto</th>
+            <th>Tipo</th>
+            <th class="num">Quantidade</th>
+            <th class="num">Saldo</th>
+            <th>Detalhe</th>
+            <th>Por</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="m : ${page.content}">
+            <td th:text="${#temporals.format(m.createdAt.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+            <td><a th:href="@{/stock(productId=${m.product.id})}" th:text="${m.product.name}">Produto</a></td>
+            <td><span class="pill" th:classappend="|movement movement--${#strings.toLowerCase(m.type.name())}|" th:text="${m.type.label}">Entrada</span></td>
+            <td class="num" th:classappend="${m.quantity > 0} ? 'qty-in' : 'qty-out'"
+                th:text="${m.quantity > 0} ? |+${m.quantity}| : ${m.quantity}">+1</td>
+            <td class="num" th:text="${m.balanceAfter}">1</td>
+            <td>
+                <a th:if="${m.sale}" th:href="@{/sales/{id}(id=${m.sale.id})}" th:text="|Venda #${m.sale.id}|">Venda #1</a>
+                <span th:if="${m.reason}" class="muted" th:text="${m.sale} ? | · ${m.reason}| : ${m.reason}">motivo</span>
+            </td>
+            <td class="muted" th:text="${m.createdBy}">admin</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pagination" th:if="${page.totalPages > 1}" aria-label="Paginação">
+        <a th:if="${page.hasPrevious()}" th:href="@{/stock(productId=${productId}, type=${type}, page=${page.number - 1})}">Anterior</a>
+        <span th:text="|Página ${page.number + 1} de ${page.totalPages}|">Página 1 de 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/stock(productId=${productId}, type=${type}, page=${page.number + 1})}">Próxima</a>
+    </nav>
+</main>
+</body>
+</html>
