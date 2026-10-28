@@ -20,6 +20,10 @@
         <input id="email" type="email" th:field="*{email}" maxlength="254" placeholder="cliente@exemplo.com" th:errorclass="invalid">
         <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
 
+        <label for="phone">Telefone / WhatsApp <span class="muted">(opcional)</span></label>
+        <input id="phone" type="tel" th:field="*{phone}" maxlength="20" inputmode="tel" placeholder="(11) 98765-4321" th:errorclass="invalid">
+        <p class="field-error" th:if="${#fields.hasErrors('phone')}" th:errors="*{phone}"></p>
+
         <label for="document">CPF ou CNPJ <span class="muted">(opcional)</span></label>
         <input id="document" type="text" th:field="*{document}" maxlength="18" inputmode="numeric"
                placeholder="000.000.000-00" th:errorclass="invalid">

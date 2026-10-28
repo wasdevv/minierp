@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${history.customer.name})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('customers')}"></header>
+<main th:with="c=${history.customer}">
+    <div class="page-header">
+        <div>
+            <h1 th:text="${c.name}">Cliente</h1>
+            <p class="subtitle" th:text="|Cliente desde ${#temporals.format(c.createdAt.atZoneSameInstant(zone), 'dd/MM/yyyy')}|">Cliente desde</p>
+        </div>
+        <div class="page-actions">
+            <a class="button button--pdf" th:href="@{/customers/{id}/edit(id=${c.id})}">Editar</a>
+            <a class="button" th:href="@{/sales/new(customerId=${c.id})}">Nova venda</a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <section class="contact-card card">
+        <div>
+            <span class="kpi__label">E-mail</span>
+            <a th:if="${c.email}" th:href="|mailto:${c.email}|" th:text="${c.email}">email</a>
+            <span th:unless="${c.email}" class="muted">—</span>
+        </div>
+        <div>
+            <span class="kpi__label">Telefone / WhatsApp</span>
+            <span th:if="${c.phone}">
+                <span th:text="${c.formattedPhone}">(11) 98765-4321</span>
+                <a class="whatsapp" th:href="${c.whatsAppUrl}" target="_blank" rel="noopener">WhatsApp</a>
+            </span>
+            <span th:unless="${c.phone}" class="muted">—</span>
+        </div>
+        <div>
+            <span class="kpi__label">CPF/CNPJ</span>
+            <span th:text="${c.maskedDocument} ?: '—'">***.982.247-**</span>
+        </div>
+    </section>
+
+    <section class="kpis" aria-label="Resumo do cliente">
+        <div class="kpi kpi--accent">
+            <span class="kpi__label">Total comprado</span>
+            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(history.totalSpent, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint">vendas confirmadas</span>
+        </div>
+        <div class="kpi">
+            <span class="kpi__label">Compras</span>
+            <strong class="kpi__value" th:text="${history.confirmedSales}">0</strong>
+            <span class="kpi__hint" th:text="${history.lastPurchase} ? |última em ${#temporals.format(history.lastPurchase.atZoneSameInstant(zone), 'dd/MM/yyyy')}| : 'nenhuma ainda'">última</span>
+        </div>
+        <div class="kpi">
+            <span class="kpi__label">Ticket médio</span>
+            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(history.averageTicket(), 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint">por compra</span>
+        </div>
+        <div class="kpi" th:classappend="${history.onAccount.signum() > 0} ? 'kpi--warn'">
+            <span class="kpi__label">Comprado no fiado</span>
+            <strong class="kpi__value" th:text="${'R$ ' + #numbers.formatDecimal(history.onAccount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+            <span class="kpi__hint">soma das vendas fiado</span>
+        </div>
+    </section>
+
+    <div class="card__header history-header"><h2>Histórico de compras</h2></div>
+
+    <div th:if="${history.sales.empty}" class="empty">
+        <strong>Nenhuma compra registrada.</strong>
+        <span>As vendas feitas para este cliente aparecem aqui.</span>
+    </div>
+
+    <table th:unless="${history.sales.empty}">
+        <thead>
+        <tr>
+            <th>Nº</th>
+            <th>Data</th>
+            <th class="num">Itens</th>
+            <th>Pagamento</th>
+            <th class="num">Total</th>
+            <th>Situação</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="s : ${history.sales.content}">
+            <td><a th:href="@{/sales/{id}(id=${s.id})}" th:text="|#${s.id}|">#1</a></td>
+            <td th:text="${#temporals.format(s.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026</td>
+            <td class="num" th:text="${s.unitCount}">1</td>
+            <td class="muted" th:text="${s.paymentMethod} ? ${s.paymentMethod.label} : '—'">Pix</td>
+            <td class="num" th:classappend="${s.cancelled} ? 'struck'" th:text="${'R$ ' + #numbers.formatDecimal(s.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            <td><span th:replace="~{fragments/layout :: saleStatus(${s})}"></span></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pagination" th:if="${history.sales.totalPages > 1}" aria-label="Paginação">
+        <a th:if="${history.sales.hasPrevious()}" th:href="@{/customers/{id}(id=${c.id}, page=${history.sales.number - 1})}">Anterior</a>
+        <span th:text="|Página ${history.sales.number + 1} de ${history.sales.totalPages}|">Página 1 de 1</span>
+        <a th:if="${history.sales.hasNext()}" th:href="@{/customers/{id}(id=${c.id}, page=${history.sales.number + 1})}">Próxima</a>
+    </nav>
+
+    <p class="muted"><a th:href="@{/customers}">← Voltar para clientes</a></p>
+</main>
+</body>
+</html>

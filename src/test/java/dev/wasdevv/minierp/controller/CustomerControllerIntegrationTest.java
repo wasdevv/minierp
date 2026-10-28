@@ -143,7 +143,7 @@ class CustomerControllerIntegrationTest extends IntegrationTest {
                         .param("name", "Maria S. Lima")
                         .param("email", "")
                         .param("document", "529.982.247-25"))
-                .andExpect(redirectedUrl("/customers"))
+                .andExpect(redirectedUrl("/customers/" + customer.getId()))
                 .andExpect(flash().attribute("notice", "Cliente atualizado."));
 
         Customer updated = customers.findById(customer.getId()).orElseThrow();

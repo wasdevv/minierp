@@ -57,8 +57,10 @@ public class SaleController {
     }
 
     @GetMapping("/new")
-    public String newForm(Model model) {
-        return form(SaleForm.withEmptyRow(), List.of(), model);
+    public String newForm(@RequestParam(name = "customerId", required = false) Long customerId, Model model) {
+        SaleForm form = SaleForm.withEmptyRow();
+        form.setCustomerId(customerId);
+        return form(form, List.of(), model);
     }
 
     @PostMapping(params = "addItem")

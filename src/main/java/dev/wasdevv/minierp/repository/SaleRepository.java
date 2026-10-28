@@ -23,6 +23,19 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
 
     boolean existsByCustomerId(Long customerId);
 
+    /** A customer's sales, newest first, cancelled ones included (they are part of the history). */
+    Page<Sale> findByCustomerIdOrderBySaleDateDescIdDesc(Long customerId, Pageable pageable);
+
+    /** Count, total, fiado total and last purchase of a customer's confirmed sales. */
+    @Query("""
+            select count(s), coalesce(sum(s.totalAmount), 0),
+                   coalesce(sum(case when s.paymentMethod = dev.wasdevv.minierp.model.PaymentMethod.ON_ACCOUNT
+                                     then s.totalAmount else 0 end), 0),
+                   max(s.saleDate)
+            from Sale s
+            where s.customer.id = :customerId and s.status = dev.wasdevv.minierp.model.SaleStatus.CONFIRMED""")
+    List<Object[]> customerTotals(@Param("customerId") Long customerId);
+
     /** SELECT ... FOR UPDATE on the sale row: two cancellations of the same sale run one after the other. */
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select s from Sale s where s.id = :id")

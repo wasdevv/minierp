@@ -1,6 +1,7 @@
 package dev.wasdevv.minierp.dto;
 
 import dev.wasdevv.minierp.model.Customer;
+import dev.wasdevv.minierp.model.Phone;
 import dev.wasdevv.minierp.model.TaxId;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -24,11 +25,15 @@ public class CustomerForm {
     @ValidTaxId
     private String document;
 
+    @ValidPhone
+    private String phone;
+
     public static CustomerForm from(Customer customer) {
         CustomerForm form = new CustomerForm();
         form.setName(customer.getName());
         form.setEmail(customer.getEmail());
         form.setDocument(customer.getDocument());
+        form.setPhone(customer.getPhone());
         return form;
     }
 
@@ -36,6 +41,7 @@ public class CustomerForm {
         customer.setName(name);
         customer.setEmail(email);
         customer.setDocument(document);
+        customer.setPhone(phone);
     }
 
     public String getName() {
@@ -68,6 +74,21 @@ public class CustomerForm {
     public void setDocument(String document) {
         String trimmed = trimToNull(document);
         this.document = trimmed != null && trimmed.matches("[\\d.\\-/\\s]+") ? TaxId.normalize(trimmed) : trimmed;
+    }
+
+    /** Formatted for the form field; {@link #getPhoneDigits()} is what gets stored. */
+    public String getPhone() {
+        return Phone.format(phone);
+    }
+
+    public String getPhoneDigits() {
+        return phone;
+    }
+
+    /** Punctuation and +55 are dropped; letters are kept so that validation rejects them. */
+    public void setPhone(String phone) {
+        String trimmed = trimToNull(phone);
+        this.phone = trimmed != null && trimmed.matches("[\\d\\s()+.\\-]+") ? Phone.normalize(trimmed) : trimmed;
     }
 
     private static String trimToNull(String value) {

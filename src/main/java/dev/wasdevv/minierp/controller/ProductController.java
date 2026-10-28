@@ -77,6 +77,12 @@ public class ProductController {
         return "redirect:/products";
     }
 
+    /** There is no product page of its own: the address goes to the edit form instead of a 405. */
+    @GetMapping("/{id}")
+    public String show(@PathVariable Long id) {
+        return "redirect:/products/" + id + "/edit";
+    }
+
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
         model.addAttribute("product", ProductForm.from(service.get(id)));

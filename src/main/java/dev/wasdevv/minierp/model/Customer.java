@@ -28,6 +28,10 @@ public class Customer {
     @Column(length = 14, unique = true)
     private String document;
 
+    /** Area code + number, digits only; see {@link Phone}. */
+    @Column(length = 11)
+    private String phone;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
@@ -62,6 +66,23 @@ public class Customer {
 
     public void setDocument(String document) {
         this.document = document;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getFormattedPhone() {
+        return Phone.format(phone);
+    }
+
+    /** wa.me link for this customer, or {@code null} without a phone. */
+    public String getWhatsAppUrl() {
+        return phone == null ? null : "https://wa.me/55" + phone;
     }
 
     public String getMaskedDocument() {
