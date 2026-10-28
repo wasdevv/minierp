@@ -292,7 +292,7 @@ class ProductControllerIntegrationTest extends IntegrationTest {
                 .andExpect(content().string(containsString("Caneta")))
                 .andExpect(content().string(not(containsString("Caderno"))))
                 .andExpect(content().string(not(containsString("Agenda"))))
-                .andExpect(content().string(containsString("aria-current=\"true\">Estoque baixo (até 10)")));
+                .andExpect(content().string(containsString("aria-current=\"true\">Estoque baixo")));
     }
 
     @Test
@@ -334,8 +334,8 @@ class ProductControllerIntegrationTest extends IntegrationTest {
         products.save(inactive);
 
         mvc.perform(get("/products"))
-                .andExpect(content().string(containsString("<span class=\"stock-low\" title=\"Estoque baixo\">10</span>")))
-                .andExpect(content().string(not(containsString("title=\"Estoque baixo\">11<"))))
+                .andExpect(content().string(containsString("<span class=\"stock-low\" title=\"Estoque baixo: mínimo 10\">10</span>")))
+                .andExpect(content().string(not(containsString("title=\"Estoque baixo: mínimo 10\">11<"))))
                 .andExpect(content().string(containsString("<span class=\"pill pill--off\">Inativo</span>")))
                 .andExpect(content().string(containsString("aria-current=\"page\"")));
     }

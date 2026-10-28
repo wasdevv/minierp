@@ -30,7 +30,7 @@
         <div class="row">
             <div>
                 <label for="price">Preço (R$)</label>
-                <input id="price" type="number" th:field="*{price}" min="0" step="0.01" placeholder="19.90" required th:errorclass="invalid">
+                <input id="price" type="number" th:field="*{price}" min="0" step="0.01" placeholder="19.90" required th:errorclass="invalid" data-price>
                 <p class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></p>
             </div>
             <div th:if="${productId == null}">
@@ -48,6 +48,21 @@
             </div>
         </div>
 
+        <div class="row">
+            <div>
+                <label for="costPrice">Custo (R$) <span class="muted">(opcional)</span></label>
+                <input id="costPrice" type="number" th:field="*{costPrice}" min="0" step="0.01" placeholder="Quanto você paga" th:errorclass="invalid" data-cost>
+                <p class="field-error" th:if="${#fields.hasErrors('costPrice')}" th:errors="*{costPrice}"></p>
+                <p class="muted hint" data-margin aria-live="polite"></p>
+            </div>
+            <div>
+                <label for="minStock">Estoque mínimo</label>
+                <input id="minStock" type="number" th:field="*{minStock}" min="0" step="1" required th:errorclass="invalid">
+                <p class="field-error" th:if="${#fields.hasErrors('minStock')}" th:errors="*{minStock}"></p>
+                <p class="muted hint">Com esse estoque ou menos, o produto aparece como "estoque baixo".</p>
+            </div>
+        </div>
+
         <label class="checkbox"><input type="checkbox" th:field="*{active}"> Ativo</label>
 
         <div class="form-actions">
@@ -56,5 +71,21 @@
         </div>
     </form>
 </main>
+<script>
+    // Margin preview only; the list and the dashboard compute it on the server.
+    (function () {
+        const price = document.querySelector('[data-price]');
+        const cost = document.querySelector('[data-cost]');
+        const out = document.querySelector('[data-margin]');
+        function update() {
+            const p = Number(price.value), c = Number(cost.value);
+            out.textContent = cost.value === '' || !(p > 0) ? '' :
+                'Margem: ' + ((p - c) / p * 100).toLocaleString('pt-BR', { maximumFractionDigits: 1 }) + '%';
+        }
+        price.addEventListener('input', update);
+        cost.addEventListener('input', update);
+        update();
+    })();
+</script>
 </body>
 </html>

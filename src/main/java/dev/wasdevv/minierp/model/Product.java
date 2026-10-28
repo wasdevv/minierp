@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.OffsetDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -16,8 +17,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(name = "products")
 public class Product {
 
-    /** At or below this quantity an active product counts as low on stock. */
-    public static final int LOW_STOCK = 10;
+    /** Minimum stock of a new product until the operator sets its own. */
+    public static final int DEFAULT_MIN_STOCK = 10;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,6 +38,14 @@ public class Product {
 
     @Column(name = "stock_quantity", nullable = false)
     private int stockQuantity;
+
+    /** {@code null} when nobody told us: then the margin is unknown, not 100%. */
+    @Column(name = "cost_price", precision = 12, scale = 2)
+    private BigDecimal costPrice;
+
+    /** At or below this quantity an active product is low on stock. */
+    @Column(name = "min_stock", nullable = false)
+    private int minStock = DEFAULT_MIN_STOCK;
 
     @Column(nullable = false)
     private boolean active = true;
@@ -95,6 +104,34 @@ public class Product {
 
     public void setStockQuantity(int stockQuantity) {
         this.stockQuantity = stockQuantity;
+    }
+
+    public BigDecimal getCostPrice() {
+        return costPrice;
+    }
+
+    public void setCostPrice(BigDecimal costPrice) {
+        this.costPrice = costPrice;
+    }
+
+    public int getMinStock() {
+        return minStock;
+    }
+
+    public void setMinStock(int minStock) {
+        this.minStock = minStock;
+    }
+
+    public boolean isLowStock() {
+        return active && stockQuantity <= minStock;
+    }
+
+    /** Gross margin over the sale price, in percent; {@code null} without a cost or with a free product. */
+    public BigDecimal getMarginPercent() {
+        if (costPrice == null || price == null || price.signum() == 0) {
+            return null;
+        }
+        return price.subtract(costPrice).multiply(BigDecimal.valueOf(100)).divide(price, 1, RoundingMode.HALF_UP);
     }
 
     public boolean isActive() {

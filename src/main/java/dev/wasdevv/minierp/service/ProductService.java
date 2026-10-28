@@ -37,8 +37,7 @@ public class ProductService {
             return products.findAll(pageable);
         }
         String term = query == null ? "" : SearchTerms.escapeLike(query.strip());
-        return products.search(term, filter == ProductFilter.LOW_STOCK, Product.LOW_STOCK,
-                filter == ProductFilter.INACTIVE, pageable);
+        return products.search(term, filter == ProductFilter.LOW_STOCK, filter == ProductFilter.INACTIVE, pageable);
     }
 
     @Transactional(readOnly = true)

@@ -13,6 +13,18 @@ public interface SaleItemRepository extends JpaRepository<SaleItem, Long> {
 
     boolean existsByProductId(Long productId);
 
+    /**
+     * Per confirmed sale in the range: total paid, cost of its items with a cost, number of items, and number of
+     * items with a cost.
+     */
+    @Query("""
+            select s.totalAmount, coalesce(sum(i.unitCost * i.quantity), 0), count(i), count(i.unitCost)
+            from SaleItem i join i.sale s
+            where s.status = dev.wasdevv.minierp.model.SaleStatus.CONFIRMED
+              and s.saleDate >= :start and s.saleDate < :end
+            group by s.id, s.totalAmount""")
+    List<Object[]> costsBySale(@Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end);
+
     /** Best sellers by units among confirmed sales with {@code start <= sale_date < end}. */
     @Query("""
             select new dev.wasdevv.minierp.dto.Dashboard$TopProduct(p.name, p.sku, sum(i.quantity), sum(i.subtotal))

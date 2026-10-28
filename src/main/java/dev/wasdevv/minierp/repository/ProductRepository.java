@@ -29,22 +29,23 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /**
      * Name or SKU contains {@code term} (case-insensitive; empty matches all), optionally narrowed to active
-     * products at or below {@code lowStock} units, or to inactive products.
+     * products at or below their own minimum stock, or to inactive products.
      */
     @Query("""
             select p from Product p
             where (lower(p.name) like lower(concat('%', :term, '%')) escape '\\'
                    or lower(p.sku) like lower(concat('%', :term, '%')) escape '\\')
-              and (:onlyLowStock = false or (p.active = true and p.stockQuantity <= :lowStock))
+              and (:onlyLowStock = false or (p.active = true and p.stockQuantity <= p.minStock))
               and (:onlyInactive = false or p.active = false)
             """)
     Page<Product> search(@Param("term") String term, @Param("onlyLowStock") boolean onlyLowStock,
-                         @Param("lowStock") int lowStock, @Param("onlyInactive") boolean onlyInactive,
-                         Pageable pageable);
+                         @Param("onlyInactive") boolean onlyInactive, Pageable pageable);
 
-    /** Active products at or below {@code threshold} units, emptiest first. */
-    @Query("select p from Product p where p.active = true and p.stockQuantity <= :threshold order by p.stockQuantity, p.name")
-    List<Product> findLowStock(@Param("threshold") int threshold, Pageable pageable);
+    /** Active products at or below their minimum stock, the furthest below it first. */
+    @Query("""
+            select p from Product p where p.active = true and p.stockQuantity <= p.minStock
+            order by (p.stockQuantity - p.minStock), p.name""")
+    List<Product> findLowStock(Pageable pageable);
 
     long countByActiveTrue();
 }

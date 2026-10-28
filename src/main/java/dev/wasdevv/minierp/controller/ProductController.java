@@ -5,7 +5,6 @@ import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.StaleProductException;
-import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
@@ -50,7 +49,6 @@ public class ProductController {
         model.addAttribute("q", query == null ? "" : query.strip());
         model.addAttribute("filter", filter);
         model.addAttribute("filters", ProductFilter.values());
-        model.addAttribute("lowStock", Product.LOW_STOCK);
         return "products/list";
     }
 

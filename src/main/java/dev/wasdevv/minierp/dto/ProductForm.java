@@ -34,6 +34,14 @@ public class ProductForm {
     @Digits(integer = 10, fraction = 2, message = "Use no máximo 10 dígitos inteiros e 2 casas decimais.")
     private BigDecimal price;
 
+    @DecimalMin(value = "0.00", message = "O custo não pode ser negativo.")
+    @Digits(integer = 10, fraction = 2, message = "Use no máximo 10 dígitos inteiros e 2 casas decimais.")
+    private BigDecimal costPrice;
+
+    @NotNull(message = "Informe o estoque mínimo.")
+    @PositiveOrZero(message = "O estoque mínimo não pode ser negativo.")
+    private Integer minStock = Product.DEFAULT_MIN_STOCK;
+
     /** Only on creation; afterwards stock changes through receipts and adjustments, which keep a history. */
     @NotNull(message = "Informe o estoque inicial.", groups = OnCreate.class)
     @PositiveOrZero(message = "O estoque não pode ser negativo.", groups = OnCreate.class)
@@ -52,6 +60,8 @@ public class ProductForm {
         form.setPrice(product.getPrice());
         form.setStockQuantity(product.getStockQuantity());
         form.setActive(product.isActive());
+        form.setCostPrice(product.getCostPrice());
+        form.setMinStock(product.getMinStock());
         form.setVersion(product.getVersion());
         return form;
     }
@@ -62,6 +72,8 @@ public class ProductForm {
         product.setSku(sku);
         product.setDescription(description);
         product.setPrice(price);
+        product.setCostPrice(costPrice);
+        product.setMinStock(minStock);
         product.setActive(active);
     }
 
@@ -120,6 +132,22 @@ public class ProductForm {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public BigDecimal getCostPrice() {
+        return costPrice;
+    }
+
+    public void setCostPrice(BigDecimal costPrice) {
+        this.costPrice = costPrice;
+    }
+
+    public Integer getMinStock() {
+        return minStock;
+    }
+
+    public void setMinStock(Integer minStock) {
+        this.minStock = minStock;
     }
 
     public Long getVersion() {

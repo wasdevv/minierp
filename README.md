@@ -105,6 +105,8 @@ src/
 - `description`: descrição opcional.
 - `price`: preço atual de venda.
 - `stock_quantity`: quantidade disponível.
+- `cost_price`: custo opcional (`V9__add_product_cost_and_min_stock.sql`). Sem custo, a margem fica "—", nunca 100%.
+- `min_stock`: estoque mínimo do produto (padrão 10); ativo com esse estoque ou menos aparece como estoque baixo.
 - `active`: indica se o produto está ativo.
 - `version`: lock otimista (`V4__add_product_version.sql`); a edição de um produto alterado depois que o formulário abriu é recusada, para não sobrescrever uma baixa de estoque.
 - `created_at` e `updated_at`: datas de auditoria.
@@ -137,6 +139,7 @@ src/
 - `quantity`: quantidade vendida.
 - `unit_price`: preço unitário registrado no momento da venda.
 - `subtotal`: subtotal do item; o banco confere `subtotal = unit_price * quantity`.
+- `unit_cost`: custo do produto no momento da venda; mudar o custo depois não reescreve o lucro passado.
 
 Linhas repetidas do mesmo produto são somadas numa só (`UNIQUE (sale_id, product_id)`). Produto já vendido e cliente com vendas não podem ser excluídos: o produto é retirado das vendas desmarcando "Ativo", e só produtos ativos aparecem na tela de venda.
 

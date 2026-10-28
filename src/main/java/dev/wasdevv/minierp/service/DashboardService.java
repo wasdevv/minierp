@@ -1,7 +1,6 @@
 package dev.wasdevv.minierp.service;
 
 import dev.wasdevv.minierp.dto.Dashboard;
-import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.model.Sale;
 import dev.wasdevv.minierp.repository.CustomerRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
@@ -75,17 +74,35 @@ public class DashboardService {
             chart.add(new Dashboard.Day(chartStart.plusDays(i), day.sales(), day.revenue(), height));
         }
 
+        Dashboard.Profit profit = profit(saleItems.costsBySale(startOf(firstOfMonth), startOf(today.plusDays(1))));
+
         return new Dashboard(
                 today,
                 todayPeriod,
                 monthPeriod,
                 chart,
                 saleItems.topProducts(startOf(firstOfMonth), startOf(today.plusDays(1)), PageRequest.of(0, LIST_SIZE)),
-                products.findLowStock(Product.LOW_STOCK, PageRequest.of(0, LIST_SIZE + 1)),
+                products.findLowStock(PageRequest.of(0, LIST_SIZE + 1)),
                 sales.findAllBy(PageRequest.of(0, LIST_SIZE,
                         Sort.by(Sort.Order.desc("saleDate"), Sort.Order.desc("id")))).getContent(),
                 products.countByActiveTrue(),
-                customers.count());
+                customers.count(),
+                profit);
+    }
+
+    /** Unknown cost never counts as zero: a sale with an item without cost stays out of the sum. */
+    static Dashboard.Profit profit(List<Object[]> costsBySale) {
+        BigDecimal amount = null;
+        long withoutCost = 0;
+        for (Object[] sale : costsBySale) {
+            if (((Number) sale[2]).longValue() != ((Number) sale[3]).longValue()) {
+                withoutCost++;
+                continue;
+            }
+            BigDecimal margin = ((BigDecimal) sale[0]).subtract((BigDecimal) sale[1]);
+            amount = amount == null ? margin : amount.add(margin);
+        }
+        return new Dashboard.Profit(amount, withoutCost);
     }
 
     private OffsetDateTime startOf(LocalDate day) {
