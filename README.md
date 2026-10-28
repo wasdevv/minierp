@@ -355,7 +355,7 @@ Rotas, parâmetros e respostas, o fluxo de venda com baixa de estoque (com diagr
 
 ## Screenshots
 
-Capturas reais da aplicação, com dados fictícios. Para gerar de novo: `scripts/screenshots.sh`, com as variáveis no cabeçalho do script. Ele recria um banco descartável, cadastra os dados pelos próprios formulários, passando pela validação e pela baixa de estoque, e captura as telas com Chrome headless.
+Capturas reais da aplicação, com dados fictícios. O visual é o tema escuro `static/css/designeer-theme.css`, carregado depois do `app.css`. Para gerar de novo: `scripts/screenshots.sh`, com as variáveis no cabeçalho do script. Ele recria um banco descartável, cadastra os dados pelos próprios formulários, passando pela validação e pela baixa de estoque, e captura as telas com Chrome headless.
 
 **Início**: faturamento de hoje e do mês, ticket médio, vendas dos últimos 14 dias, últimas vendas, mais vendidos e o que repor. Conta só vendas confirmadas.
 

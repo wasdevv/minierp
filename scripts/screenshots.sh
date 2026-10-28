@@ -103,7 +103,7 @@ for path in /products /customers $(seq -f '/sales/%g' 1 21) $(seq -f '/sales/%g'
 # with a <base> so that the stylesheet still comes from the app (static files are public).
 shot() {  # path file width height
     page "$1" | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/page.html"
-    "$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
+    "$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=3000 \
         --window-size="$3,$4" --screenshot="$OUT/$2" "file://$WORK/page.html" > /dev/null 2>&1
 }
 today=$(date +%F)
@@ -120,12 +120,12 @@ shot /sales/2 sale-detail.png 1280 720
 curl -sf -b "$JAR" -X POST "$BASE/sales" -d "_csrf=$CSRF&customerId=1&addItem=1" \
     -d "items[0].productId=2&items[0].quantity=3" -d "items[1].productId=1&items[1].quantity=10" \
     | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/sale-form.html"
-"$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
+"$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=3000 \
     --window-size=1280,980 --screenshot="$OUT/sale-form.png" "file://$WORK/sale-form.html" > /dev/null 2>&1
 shot "/reports/sales?from=$month&to=$today" sales-report.png 1280 900
 shot /products products-mobile.png 390 1100
 curl -sf "$BASE/login" | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/login.html"
-"$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
+"$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=3000 \
     --window-size=1280,720 --screenshot="$OUT/login.png" "file://$WORK/login.html" > /dev/null 2>&1
 
 curl -sf -b "$JAR" -o "$WORK/report.pdf" "$BASE/reports/sales.pdf?from=$month&to=$today"
