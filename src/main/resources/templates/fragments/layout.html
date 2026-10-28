@@ -24,5 +24,9 @@
     <div th:if="${notice}" class="notice" role="status" th:text="${notice}"></div>
     <div th:if="${alert}" class="alert" role="alert" th:text="${alert}"></div>
 </th:block>
+<th:block th:fragment="saleStatus(sale)">
+    <span th:if="${sale.cancelled}" class="pill pill--danger">Cancelada</span>
+    <span th:unless="${sale.cancelled}" class="pill">Confirmada</span>
+</th:block>
 </body>
 </html>

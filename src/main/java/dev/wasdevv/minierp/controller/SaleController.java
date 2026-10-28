@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * Sales are created and viewed, never edited or deleted. The form adds and removes rows with plain
+ * Sales are created, viewed and cancelled, never edited or deleted. The form adds and removes rows with plain
  * submit buttons, so it works without JavaScript and every step goes through the server.
  */
 @Controller
@@ -85,6 +85,18 @@ public class SaleController {
         }
         redirect.addFlashAttribute("notice", "Venda registrada.");
         return "redirect:/sales/" + sale.getId();
+    }
+
+    @PostMapping("/{id}/cancel")
+    public String cancel(@PathVariable Long id, @RequestParam(name = "reason", required = false) String reason,
+                         RedirectAttributes redirect) {
+        try {
+            service.cancel(id, reason);
+            redirect.addFlashAttribute("notice", "Venda cancelada. Os itens voltaram para o estoque.");
+        } catch (SaleRejectedException e) {
+            redirect.addFlashAttribute("alert", e.getMessage());
+        }
+        return "redirect:/sales/" + id;
     }
 
     @GetMapping("/{id}")

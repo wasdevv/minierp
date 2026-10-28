@@ -11,12 +11,20 @@
                 <span th:text="${sale.customer} ? ${sale.customer.name} : 'Consumidor final'">Cliente</span>
                 ·
                 <span th:text="${#temporals.format(sale.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+                ·
+                <span th:replace="~{fragments/layout :: saleStatus(${sale})}"></span>
             </p>
         </div>
         <a class="button" th:href="@{/sales/new}">Nova venda</a>
     </div>
 
     <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <div th:if="${sale.cancelled}" class="cancelled-banner" role="status">
+        <strong th:text="|Cancelada em ${#temporals.format(sale.cancelledAt.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}|">Cancelada</strong>
+        <span th:text="|Motivo: ${sale.cancelReason}|">Motivo</span>
+        <span class="muted">Os itens voltaram para o estoque e a venda não entra no relatório.</span>
+    </div>
 
     <table>
         <thead>
@@ -44,6 +52,18 @@
         </tr>
         </tfoot>
     </table>
+    <form th:unless="${sale.cancelled}" class="form cancel-sale" method="post"
+          th:action="@{/sales/{id}/cancel(id=${sale.id})}"
+          onsubmit="return confirm('Cancelar esta venda? Os itens voltam para o estoque.');">
+        <p class="section-label">Cancelar venda</p>
+        <p class="muted hint">Os itens voltam para o estoque e a venda sai do relatório. A venda continua no histórico.</p>
+        <label for="reason">Motivo</label>
+        <div class="cancel-sale__row">
+            <input id="reason" type="text" name="reason" maxlength="200" required placeholder="Ex.: cliente desistiu da compra">
+            <button type="submit" class="button-danger">Cancelar venda</button>
+        </div>
+    </form>
+
     <p class="muted"><a th:href="@{/sales}">← Voltar para vendas</a></p>
 </main>
 </body>

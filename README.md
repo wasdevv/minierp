@@ -121,7 +121,7 @@ src/
 - `customer_id`: cliente associado; vazio para consumidor final.
 - `sale_date`: data e hora da venda.
 - `total_amount`: total calculado pelo backend.
-- `status`: não implementado. A venda nasce confirmada e não é editada nem excluída; cancelamento ainda não existe.
+- `status`: `CONFIRMED` ou `CANCELLED` (`V5__add_sale_cancellation.sql`), com `cancelled_at` e `cancel_reason`. A venda nasce confirmada, nunca é editada nem excluída, e pode ser cancelada uma vez.
 
 ### `sale_items` (implementado em `V3__create_sales.sql`)
 - `id`: identificador.
@@ -143,7 +143,7 @@ Em `products`, preço e estoque negativos são barrados pela validação do form
 4. Uma venda não deve ser confirmada se algum item não tiver estoque suficiente.
 5. A gravação da venda e a baixa de estoque devem ocorrer na mesma transação.
 6. Registre o preço aplicado em cada item da venda, para preservar o histórico mesmo que o preço do produto mude.
-7. Defina como cancelamentos afetam estoque e relatórios, caso o cancelamento seja implementado.
+7. Cancelar uma venda devolve todos os itens ao estoque, na mesma transação, e tira a venda do relatório. A venda continua no histórico com data e motivo (obrigatório), e não pode ser cancelada duas vezes.
 8. Valide entradas tanto na camada web quanto na camada de serviço quando necessário.
 
 ## Baixa de estoque
