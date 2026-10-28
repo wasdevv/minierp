@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Entrar')}"></head>
+<body class="login-page">
+<main class="login">
+    <div class="login__brand">Mini ERP</div>
+    <form class="form login__card" method="post" th:action="@{/login}">
+        <h1>Entrar</h1>
+        <p class="subtitle">Acesse com a conta de operador.</p>
+
+        <div class="errors" th:if="${param.error}" role="alert">Usuário ou senha inválidos.</div>
+        <div class="notice" th:if="${param.logout}" role="status">Você saiu do sistema.</div>
+
+        <label for="username">Usuário</label>
+        <input id="username" type="text" name="username" autocomplete="username" required autofocus>
+
+        <label for="password">Senha</label>
+        <input id="password" type="password" name="password" autocomplete="current-password" required>
+
+        <div class="form-actions">
+            <button type="submit">Entrar</button>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -23,16 +23,20 @@ psql_args=(-h "${pg_host_port%%:*}" -p "${pg_host_port##*:}" -U "$PG_USER" -q)
 psql "${psql_args[@]}" -c "DROP DATABASE IF EXISTS $DB" -c "CREATE DATABASE $DB"
 
 ./mvnw -B -q package -DskipTests
+ADMIN_PASSWORD=screenshots-only
 DB_URL="$PG_URL/$DB" DB_USERNAME="$PG_USER" DB_PASSWORD="${PG_PASSWORD:-}" SERVER_PORT=$PORT \
+    MINIERP_ADMIN_PASSWORD=$ADMIN_PASSWORD \
     java -jar target/mini-erp-*.jar > "$WORK/app.log" 2>&1 &
 APP_PID=$!
-for _ in $(seq 60); do curl -sf -o /dev/null "$BASE/products" && break; sleep 2; done
+for _ in $(seq 60); do curl -sf -o /dev/null "$BASE/login" && break; sleep 2; done
 
-post() { curl -sf -o /dev/null -X POST "$BASE$1" "${@:2}"; }
+JAR="$WORK/cookies"
+source scripts/session.sh
+login "$BASE" admin "$ADMIN_PASSWORD"
 
 # Fictitious catalog and customers; documents are check-digit test numbers, not real people.
 while IFS='|' read -r name sku price stock; do
-    post /products --data-urlencode "name=$name" -d "sku=$sku&price=$price&stockQuantity=$stock&active=true"
+    post /products --data-urlencode "name=$name" -d "sku=$sku&price=$price&stockQuantity=$stock&active=true" > /dev/null
 done <<'DATA'
 Caneta esferográfica azul|CN-AZ|2.50|240
 Caderno universitário 96 folhas|CD-96|14.90|60
@@ -43,10 +47,10 @@ Marca-texto amarelo|MT-AM|4.75|8
 Régua 30 cm|RG-30|3.40|90
 Estojo duplo|ES-02|39.90|25
 DATA
-post /products --data-urlencode "name=Agenda 2025" -d "sku=AG-25&price=24.90&stockQuantity=0&_active=on"
+post /products --data-urlencode "name=Agenda 2025" -d "sku=AG-25&price=24.90&stockQuantity=0&_active=on" > /dev/null
 
 while IFS='|' read -r name email document; do
-    post /customers --data-urlencode "name=$name" --data-urlencode "email=$email" --data-urlencode "document=$document"
+    post /customers --data-urlencode "name=$name" --data-urlencode "email=$email" --data-urlencode "document=$document" > /dev/null
 done <<'DATA'
 Maria Souza|maria.souza@exemplo.com|529.982.247-25
 João Lima|joao.lima@exemplo.com|111.444.777-35
@@ -62,7 +66,7 @@ while read -r customer lines; do
     for line in $lines; do
         args+=(-d "items[$i].productId=${line%%:*}" -d "items[$i].quantity=${line##*:}"); i=$((i + 1))
     done
-    post /sales "${args[@]}"
+    post /sales "${args[@]}" | grep -q '/sales/[0-9]' || { echo "sale rejected: $customer $lines" >&2; exit 1; }
 done <<'DATA'
 1 1:10 2:2
 3 4:1 3:24 5:12
@@ -73,9 +77,15 @@ done <<'DATA'
 0 6:4
 DATA
 
+# Every POST above left a "saved" notice in the session for the page it redirects to; consume them.
+for path in /products /customers $(seq -f '/sales/%g' 1 7); do page "$path" > /dev/null; done
+
+# Pages need the session, which Chrome does not have: save each page's HTML with curl and render the file,
+# with a <base> so that the stylesheet still comes from the app (static files are public).
 shot() {  # path file width height
+    page "$1" | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/page.html"
     "$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
-        --window-size="$3,$4" --screenshot="$OUT/$2" "$BASE$1" > /dev/null 2>&1
+        --window-size="$3,$4" --screenshot="$OUT/$2" "file://$WORK/page.html" > /dev/null 2>&1
 }
 today=$(date +%F)
 month=$(date +%Y-%m-01)
@@ -83,19 +93,19 @@ shot /products products.png 1280 860
 shot /customers customers.png 1280 720
 shot /sales sales.png 1280 860
 shot /sales/2 sale-detail.png 1280 720
-# The filled sale form only exists as a POST response: save it and point its relative URLs at the app.
-curl -sf -X POST "$BASE/sales" -d "customerId=1&addItem=1" \
+# The filled sale form only exists as a POST response.
+curl -sf -b "$JAR" -X POST "$BASE/sales" -d "_csrf=$CSRF&customerId=1&addItem=1" \
     -d "items[0].productId=2&items[0].quantity=3" -d "items[1].productId=1&items[1].quantity=10" \
     | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/sale-form.html"
-shot_file() {  # html file width height
-    "$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
-        --window-size="$3,$4" --screenshot="$OUT/$2" "file://$1" > /dev/null 2>&1
-}
-shot_file "$WORK/sale-form.html" sale-form.png 1280 980
+"$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
+    --window-size=1280,980 --screenshot="$OUT/sale-form.png" "file://$WORK/sale-form.html" > /dev/null 2>&1
 shot "/reports/sales?from=$month&to=$today" sales-report.png 1280 900
 shot /products products-mobile.png 390 1100
+curl -sf "$BASE/login" | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/login.html"
+"$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 \
+    --window-size=1280,720 --screenshot="$OUT/login.png" "file://$WORK/login.html" > /dev/null 2>&1
 
-curl -sf -o "$WORK/report.pdf" "$BASE/reports/sales.pdf?from=$month&to=$today"
+curl -sf -b "$JAR" -o "$WORK/report.pdf" "$BASE/reports/sales.pdf?from=$month&to=$today"
 ./mvnw -B -q dependency:build-classpath -Dmdep.includeScope=test -Dmdep.outputFile="$WORK/cp.txt"
 java -cp "$(cat "$WORK/cp.txt")" scripts/RenderPdf.java "$WORK/report.pdf" "$OUT/sales-report-pdf.png" 2> /dev/null
 
