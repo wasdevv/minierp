@@ -1,6 +1,8 @@
 package dev.wasdevv.minierp.repository;
 
+import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Sale;
+import dev.wasdevv.minierp.model.SaleStatus;
 import jakarta.persistence.LockModeType;
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -22,6 +24,40 @@ public interface SaleRepository extends JpaRepository<Sale, Long> {
     Optional<Sale> findWithItemsById(Long id);
 
     boolean existsByCustomerId(Long customerId);
+
+    /**
+     * The sales list with its filters: customer name (or sale number), period {@code [start, end)}, status and
+     * payment method. {@code anyCustomer} skips the name/number match; null {@code status}/{@code payment} mean "any".
+     */
+    @EntityGraph(attributePaths = "customer")
+    @Query(value = """
+            select s from Sale s left join s.customer c
+            where (:anyCustomer = true or lower(c.name) like lower(concat('%', :term, '%')) escape '\\' or s.id = :saleId)
+              and s.saleDate >= :start and s.saleDate < :end
+              and (:status is null or s.status = :status)
+              and (:payment is null or s.paymentMethod = :payment)""", countQuery = """
+            select count(s) from Sale s left join s.customer c
+            where (:anyCustomer = true or lower(c.name) like lower(concat('%', :term, '%')) escape '\\' or s.id = :saleId)
+              and s.saleDate >= :start and s.saleDate < :end
+              and (:status is null or s.status = :status)
+              and (:payment is null or s.paymentMethod = :payment)""")
+    Page<Sale> search(@Param("anyCustomer") boolean anyCustomer, @Param("term") String term,
+                      @Param("saleId") Long saleId, @Param("start") OffsetDateTime start,
+                      @Param("end") OffsetDateTime end, @Param("status") SaleStatus status,
+                      @Param("payment") PaymentMethod payment, Pageable pageable);
+
+    /** Count and total of the confirmed sales matching the same filters. */
+    @Query("""
+            select count(s), coalesce(sum(s.totalAmount), 0) from Sale s left join s.customer c
+            where (:anyCustomer = true or lower(c.name) like lower(concat('%', :term, '%')) escape '\\' or s.id = :saleId)
+              and s.saleDate >= :start and s.saleDate < :end
+              and (:status is null or s.status = :status)
+              and (:payment is null or s.paymentMethod = :payment)
+              and s.status = dev.wasdevv.minierp.model.SaleStatus.CONFIRMED""")
+    List<Object[]> searchTotals(@Param("anyCustomer") boolean anyCustomer, @Param("term") String term,
+                                @Param("saleId") Long saleId,
+                                @Param("start") OffsetDateTime start, @Param("end") OffsetDateTime end,
+                                @Param("status") SaleStatus status, @Param("payment") PaymentMethod payment);
 
     /** A customer's sales, newest first, cancelled ones included (they are part of the history). */
     Page<Sale> findByCustomerIdOrderBySaleDateDescIdDesc(Long customerId, Pageable pageable);

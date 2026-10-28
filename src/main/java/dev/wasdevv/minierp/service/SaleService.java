@@ -1,5 +1,6 @@
 package dev.wasdevv.minierp.service;
 
+import dev.wasdevv.minierp.dto.SaleFilter;
 import dev.wasdevv.minierp.dto.SaleForm;
 import dev.wasdevv.minierp.dto.SaleItemForm;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
@@ -17,6 +18,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -40,21 +42,39 @@ public class SaleService {
     private final SaleRepository sales;
     private final ProductRepository products;
     private final CustomerRepository customers;
+    private static final OffsetDateTime EARLIEST = OffsetDateTime.parse("1970-01-01T00:00:00Z");
+    private static final OffsetDateTime LATEST = OffsetDateTime.parse("9999-01-01T00:00:00Z");
+
     private final StockService stock;
     private final Clock clock;
+    private final ZoneId zone;
 
     public SaleService(SaleRepository sales, ProductRepository products, CustomerRepository customers,
-                       StockService stock, Clock clock) {
+                       StockService stock, Clock clock, ZoneId shopZone) {
         this.sales = sales;
         this.products = products;
         this.customers = customers;
         this.stock = stock;
         this.clock = clock;
+        this.zone = shopZone;
     }
 
+    /** The filtered list and, for the same filters, how many confirmed sales and how much they add up to. */
     @Transactional(readOnly = true)
-    public Page<Sale> list(Pageable pageable) {
-        return sales.findAllBy(pageable);
+    public SaleSearch search(SaleFilter filter, Pageable pageable) {
+        boolean anyCustomer = filter.query().isEmpty();
+        String term = SearchTerms.escapeLike(filter.query());
+        // -1 matches no sale: a query that is not a number only searches customer names.
+        Long saleId = filter.saleId() == null ? -1L : filter.saleId();
+        // Open ends become far-away instants rather than nulls, which PostgreSQL cannot type in "x >= ?".
+        OffsetDateTime start = filter.from() == null ? EARLIEST : filter.from().atStartOfDay(zone).toOffsetDateTime();
+        OffsetDateTime end = filter.to() == null ? LATEST : filter.to().plusDays(1).atStartOfDay(zone).toOffsetDateTime();
+        Object[] totals = sales.searchTotals(anyCustomer, term, saleId, start, end, filter.status(), filter.paymentMethod()).getFirst();
+        return new SaleSearch(sales.search(anyCustomer, term, saleId, start, end, filter.status(), filter.paymentMethod(), pageable),
+                ((Number) totals[0]).longValue(), (BigDecimal) totals[1]);
+    }
+
+    public record SaleSearch(Page<Sale> page, long confirmedSales, BigDecimal confirmedTotal) {
     }
 
     @Transactional(readOnly = true)

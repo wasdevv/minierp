@@ -52,7 +52,7 @@ O estoque de um produto só muda por estoque inicial (no cadastro), entrada, aju
 
 | Método | Caminho | Parâmetros | Resposta |
 |---|---|---|---|
-| GET | `/sales` | `page` | Lista paginada, mais recentes primeiro |
+| GET | `/sales` | `q` (nome do cliente ou nº da venda, com ou sem `#`), `from`/`to` (`AAAA-MM-DD`, dias da loja), `status` (`CONFIRMED`, `CANCELLED`), `payment` (forma de pagamento), `page` | Lista paginada, mais recentes primeiro, com quantidade e total das vendas confirmadas do filtro. Valor de filtro inválido é ignorado ou explicado na tela, nunca 400 |
 | GET | `/sales/new` | | Formulário com uma linha de item |
 | POST | `/sales` com `addItem` | o formulário atual | O mesmo formulário com mais uma linha; nada é gravado |
 | POST | `/sales` com `removeItem=<índice>` | o formulário atual | O formulário sem aquela linha; nada é gravado |
