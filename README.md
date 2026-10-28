@@ -24,9 +24,9 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 
 ### Cadastros
 - [x] Cadastro, consulta, edição e exclusão de produtos.
-- [ ] Cadastro, consulta, edição e exclusão de clientes.
-- [x] Listagem com paginação e busca (produtos).
-- [x] Validação de campos obrigatórios e dados inválidos (produtos).
+- [x] Cadastro, consulta, edição e exclusão de clientes.
+- [x] Listagem com paginação e busca (produtos e clientes).
+- [x] Validação de campos obrigatórios e dados inválidos (produtos e clientes).
 
 ### Vendas e estoque
 - [ ] Registrar uma venda com um ou mais itens.
@@ -43,8 +43,8 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 - [ ] Tratar períodos inválidos e resultados vazios.
 
 ### Qualidade e manutenção
-- [x] Testes unitários para regras de negócio (produtos).
-- [x] Testes de integração para persistência e endpoints (produtos).
+- [x] Testes unitários para regras de negócio (produtos e clientes).
+- [x] Testes de integração para persistência e endpoints (produtos e clientes).
 - [x] Mensagens de erro claras para o usuário.
 - [x] Instruções de execução reproduzíveis.
 
@@ -107,11 +107,11 @@ src/
 - `active`: indica se o produto está ativo.
 - `created_at` e `updated_at`: datas de auditoria.
 
-### `customers`
+### `customers` (implementado em `V2__create_customers.sql`)
 - `id`: identificador.
-- `name`: nome do cliente.
-- `email`: e-mail opcional ou obrigatório, conforme a regra definida.
-- `document`: documento opcional, protegido conforme necessário.
+- `name`: nome do cliente (obrigatório).
+- `email`: opcional, validado e gravado em minúsculas.
+- `document`: CPF ou CNPJ opcional, com dígitos verificadores conferidos, gravado só com números e único quando informado. A listagem mostra o documento mascarado (`***.982.247-**`), e a busca só o encontra pelo número completo, para não permitir enumerar documentos por fragmentos.
 - `created_at` e `updated_at`: datas de auditoria.
 
 ### `sales`
@@ -267,7 +267,7 @@ MINIERP_TEST_DB_USER=postgres MINIERP_TEST_DB_PASSWORD=... ./mvnw test
 
 O banco de teste é limpo antes de cada teste: não aponte para um banco com dados que importam.
 
-Casos importantes para cobrir (os de produtos já estão cobertos):
+Casos importantes para cobrir (os de produtos e clientes já estão cobertos):
 
 - Criar, editar, consultar e excluir produtos.
 - Rejeitar preço negativo e quantidade inválida.
@@ -296,7 +296,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 ## Roadmap
 
 - [x] Implementar CRUD de produtos.
-- [ ] Implementar CRUD de clientes.
+- [x] Implementar CRUD de clientes.
 - [ ] Implementar fluxo de vendas.
 - [ ] Implementar baixa transacional de estoque.
 - [ ] Criar relatório de vendas em PDF.

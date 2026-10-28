@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Clientes')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('customers')}"></header>
+<main>
+    <div class="page-header">
+        <div>
+            <h1>Clientes</h1>
+            <p class="subtitle">Cadastre e consulte quem compra de você</p>
+        </div>
+        <a class="button" th:href="@{/customers/new}">Novo cliente</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <form class="search" method="get" th:action="@{/customers}" role="search">
+        <input type="search" name="q" th:value="${q}" placeholder="Buscar por nome, e-mail ou CPF/CNPJ completo" aria-label="Buscar clientes">
+        <button type="submit">Buscar</button>
+        <a th:if="${!#strings.isEmpty(q)}" th:href="@{/customers}">Limpar</a>
+    </form>
+
+    <p th:if="${page.empty}" class="empty"
+       th:text="${#strings.isEmpty(q)} ? 'Nenhum cliente cadastrado.' : 'Nenhum cliente encontrado para a busca.'">
+        Nenhum cliente cadastrado.
+    </p>
+
+    <table th:unless="${page.empty}">
+        <thead>
+        <tr>
+            <th>CPF/CNPJ</th>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th class="num"><span class="visually-hidden">Ações</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="c : ${page.content}">
+            <td th:text="${c.maskedDocument} ?: '—'">***.456.789-**</td>
+            <td th:text="${c.name}">Cliente</td>
+            <td th:text="${c.email} ?: '—'">cliente@exemplo.com</td>
+            <td class="actions">
+                <a th:href="@{/customers/{id}/edit(id=${c.id})}">Editar</a>
+                <form method="post" th:action="@{/customers/{id}/delete(id=${c.id})}"
+                      onsubmit="return confirm('Excluir este cliente?');">
+                    <button type="submit" class="danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pagination" th:if="${page.totalPages > 1}" aria-label="Paginação">
+        <a th:if="${page.hasPrevious()}" th:href="@{/customers(q=${q}, page=${page.number - 1})}">Anterior</a>
+        <span th:text="|Página ${page.number + 1} de ${page.totalPages}|">Página 1 de 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/customers(q=${q}, page=${page.number + 1})}">Próxima</a>
+    </nav>
+    <p class="muted" th:unless="${page.empty}" th:text="|${page.totalElements} cliente(s)|">0 cliente(s)</p>
+</main>
+</body>
+</html>

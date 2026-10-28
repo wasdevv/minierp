@@ -11,6 +11,7 @@
     <a class="brand" th:href="@{/}">Mini ERP</a>
     <nav>
         <a th:href="@{/products}" th:attr="aria-current=${section == 'products'} ? 'page' : null">Produtos</a>
+        <a th:href="@{/customers}" th:attr="aria-current=${section == 'customers'} ? 'page' : null">Clientes</a>
     </nav>
 </header>
 <div th:fragment="notice" th:if="${notice}" class="notice" role="status" th:text="${notice}"></div>

@@ -25,7 +25,7 @@ public class ProductService {
         if (query == null || query.isBlank()) {
             return products.findAll(pageable);
         }
-        return products.search(escapeLike(query.strip()), pageable);
+        return products.search(SearchTerms.escapeLike(query.strip()), pageable);
     }
 
     @Transactional(readOnly = true)
@@ -73,9 +73,5 @@ public class ProductService {
     private static boolean isSkuConstraint(DataIntegrityViolationException e) {
         String message = e.getMostSpecificCause().getMessage();
         return message != null && message.contains("products_sku_key");
-    }
-
-    static String escapeLike(String term) {
-        return term.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }
