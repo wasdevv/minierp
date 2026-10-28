@@ -57,10 +57,10 @@ public class ReportController {
             period = reports.parsePeriod(from, to);
         } catch (InvalidPeriodException e) {
             // Back to the form, which shows the same message next to the fields.
+            // Values go in as URI variables, so they are encoded strictly: a stray "%" stays "%25".
             String back = UriComponentsBuilder.fromPath("/reports/sales")
-                    .queryParam("from", from == null ? "" : from)
-                    .queryParam("to", to == null ? "" : to)
-                    .encode().toUriString();
+                    .queryParam("from", "{from}").queryParam("to", "{to}")
+                    .encode().buildAndExpand(from == null ? "" : from, to == null ? "" : to).toUriString();
             return ResponseEntity.status(303).header(HttpHeaders.LOCATION, back).build();
         }
         byte[] body = pdf.render(reports.build(period));

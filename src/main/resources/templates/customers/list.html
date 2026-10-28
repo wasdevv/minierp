@@ -47,7 +47,7 @@
                 <a th:href="@{/customers/{id}(id=${c.id})}">Ficha</a>
                 <a th:href="@{/customers/{id}/edit(id=${c.id})}">Editar</a>
                 <form method="post" th:action="@{/customers/{id}/delete(id=${c.id})}"
-                      onsubmit="return confirm('Excluir este cliente?');">
+                      data-confirm="Excluir este cliente?">
                     <button type="submit" class="danger">Excluir</button>
                 </form>
             </td>

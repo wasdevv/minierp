@@ -10,6 +10,7 @@
 
         <div class="errors" th:if="${param.error}" role="alert">Usuário ou senha inválidos.</div>
         <div class="notice" th:if="${param.logout}" role="status">Você saiu do sistema.</div>
+        <div class="errors" th:if="${param.locked}" role="alert">Muitas tentativas de login. Aguarde alguns minutos e tente de novo.</div>
 
         <label for="username">Usuário</label>
         <input id="username" type="text" name="username" autocomplete="username" required autofocus>

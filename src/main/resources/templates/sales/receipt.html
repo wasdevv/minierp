@@ -5,10 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title th:text="|Recibo · Venda #${sale.id}|">Recibo</title>
     <link rel="stylesheet" th:href="@{/css/receipt.css}">
+    <script th:src="@{/js/app.js}" defer></script>
 </head>
 <body>
 <nav class="toolbar">
-    <button type="button" onclick="window.print()">Imprimir</button>
+    <button type="button" data-print>Imprimir</button>
     <a th:href="${whatsAppUrl}" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
     <a th:href="@{/sales/{id}(id=${sale.id})}">Voltar para a venda</a>
 </nav>
