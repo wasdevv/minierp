@@ -19,17 +19,33 @@ spring:
     web:
       pageable:
         max-page-size: 50
+      sort:
+        # Lists sort server-side only. Renaming the parameter keeps Spring Data from parsing a client "?sort=",
+        # which answered 500 on malformed percent-encoding ("?sort=%'").
+        sort-parameter: _server_side_sort
 
 server:
   port: ${SERVER_PORT:8080}
+  # Behind a reverse proxy (TLS terminated there), trust X-Forwarded-* for scheme and client IP.
+  forward-headers-strategy: ${MINIERP_FORWARD_HEADERS:none}
   servlet:
     session:
       tracking-modes: cookie
+      timeout: ${MINIERP_SESSION_TIMEOUT:30m}
+      cookie:
+        http-only: true
+        same-site: lax
+        # true behind HTTPS (production); false only for plain-HTTP local development.
+        secure: ${MINIERP_SECURE_COOKIE:false}
   error:
     include-stacktrace: never
     include-message: never
 
 minierp:
+  login:
+    # Failed logins from one address for one username before it is blocked, and for how long.
+    max-attempts: ${MINIERP_LOGIN_MAX_ATTEMPTS:5}
+    lock-duration: ${MINIERP_LOGIN_LOCK:15m}
   admin:
     username: ${MINIERP_ADMIN_USER:admin}
     # Required, at least 8 characters; the app does not start without it.
@@ -38,3 +54,14 @@ minierp:
   store-name: ${MINIERP_STORE_NAME:Mini ERP}
   # Zone used to show dates; they are stored as instants (TIMESTAMPTZ).
   time-zone: ${MINIERP_TIME_ZONE:America/Sao_Paulo}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+      probes:
+        enabled: true

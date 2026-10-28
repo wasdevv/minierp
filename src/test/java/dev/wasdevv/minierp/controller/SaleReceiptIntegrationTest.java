@@ -51,7 +51,7 @@ class SaleReceiptIntegrationTest extends IntegrationTest {
                 .andExpect(content().string(containsString("R$ 40,00")))
                 .andExpect(content().string(containsString("Dinheiro")))
                 .andExpect(content().string(containsString("R$ 10,00")))
-                .andExpect(content().string(containsString("window.print()")))
+                .andExpect(content().string(containsString("data-print")))
                 .andExpect(content().string(containsString("Não é documento fiscal.")));
     }
 

@@ -73,7 +73,7 @@
 
     <form th:unless="${sale.cancelled}" class="form cancel-sale" method="post"
           th:action="@{/sales/{id}/cancel(id=${sale.id})}"
-          onsubmit="return confirm('Cancelar esta venda? Os itens voltam para o estoque.');">
+          data-confirm="Cancelar esta venda? Os itens voltam para o estoque.">
         <p class="section-label">Cancelar venda</p>
         <p class="muted hint">Os itens voltam para o estoque e a venda sai do relatório. A venda continua no histórico.</p>
         <label for="reason">Motivo</label>
