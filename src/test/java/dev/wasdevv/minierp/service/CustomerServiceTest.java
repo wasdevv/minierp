@@ -3,12 +3,14 @@ package dev.wasdevv.minierp.service;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.wasdevv.minierp.dto.CustomerForm;
 import dev.wasdevv.minierp.exception.DuplicateDocumentException;
+import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.model.Customer;
 import dev.wasdevv.minierp.repository.SaleRepository;
 import dev.wasdevv.minierp.repository.CustomerRepository;
@@ -66,6 +68,33 @@ class CustomerServiceTest {
         when(customers.existsByDocumentAndIdNot("52998224725", 3L)).thenReturn(true);
 
         assertThatThrownBy(() -> service.update(3L, form("52998224725"))).isInstanceOf(DuplicateDocumentException.class);
+    }
+
+    @Test
+    void createRethrowsOtherIntegrityViolations() {
+        DataIntegrityViolationException other = new DataIntegrityViolationException("insert",
+                new SQLException("new row violates check constraint \"customers_document_check\""));
+        when(customers.existsByDocument("52998224725")).thenReturn(false);
+        when(customers.saveAndFlush(any())).thenThrow(other);
+
+        assertThatThrownBy(() -> service.create(form("52998224725"))).isSameAs(other);
+    }
+
+    @Test
+    void deleteRefusesCustomerWithSales() {
+        when(customers.findById(3L)).thenReturn(Optional.of(new Customer()));
+        when(sales.existsByCustomerId(3L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.delete(3L)).isInstanceOf(InUseException.class);
+        verify(customers, never()).delete(any());
+    }
+
+    @Test
+    void deleteRacingWithASaleIsInUseNotA500() {
+        when(customers.findById(3L)).thenReturn(Optional.of(new Customer()));
+        doThrow(new DataIntegrityViolationException("fk")).when(customers).flush();
+
+        assertThatThrownBy(() -> service.delete(3L)).isInstanceOf(InUseException.class);
     }
 
     @Test

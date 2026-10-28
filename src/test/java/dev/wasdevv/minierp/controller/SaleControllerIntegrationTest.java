@@ -125,6 +125,27 @@ class SaleControllerIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void tamperedProductAndCustomerIdsGetReadableMessages() throws Exception {
+        mvc.perform(post("/sales")
+                        .param("customerId", "abc")
+                        .param("items[0].productId", "x")
+                        .param("items[0].quantity", "1"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Item 1: escolha um produto da lista.")))
+                .andExpect(content().string(containsString("Escolha um cliente da lista.")));
+
+        assertThat(sales.count()).isZero();
+    }
+
+    @Test
+    void removingTheLastRowLeavesAnEmptyOne() throws Exception {
+        product("Caneta", "CN-01", "2.50", true);
+
+        mvc.perform(post("/sales").param("removeItem", "0").param("items[0].productId", "").param("items[0].quantity", ""))
+                .andExpect(content().string(containsString("name=\"items[0].productId\"")));
+    }
+
+    @Test
     void rejectsInactiveProduct() throws Exception {
         Product old = product("Caneta antiga", "CN-00", "1.00", false);
 

@@ -3,12 +3,14 @@ package dev.wasdevv.minierp.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
+import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
 import dev.wasdevv.minierp.exception.StaleProductException;
 import dev.wasdevv.minierp.model.Product;
@@ -24,6 +26,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Pageable;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceTest {
@@ -92,6 +95,33 @@ class ProductServiceTest {
         assertThatThrownBy(() -> service.update(7L, form("CN-01", 3L))).isInstanceOf(StaleProductException.class);
         assertThatThrownBy(() -> service.update(7L, form("CN-01", null))).isInstanceOf(StaleProductException.class);
         verify(products, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void concurrentEditCaughtAtFlushIsStale() {
+        Product existing = new Product();
+        when(products.findById(7L)).thenReturn(Optional.of(existing));
+        when(products.existsBySkuAndIdNot("CN-01", 7L)).thenReturn(false);
+        when(products.saveAndFlush(existing)).thenThrow(new ObjectOptimisticLockingFailureException(Product.class, 7L));
+
+        assertThatThrownBy(() -> service.update(7L, form("CN-01", 0L))).isInstanceOf(StaleProductException.class);
+    }
+
+    @Test
+    void deleteRefusesSoldProduct() {
+        when(products.findById(7L)).thenReturn(Optional.of(new Product()));
+        when(saleItems.existsByProductId(7L)).thenReturn(true);
+
+        assertThatThrownBy(() -> service.delete(7L)).isInstanceOf(InUseException.class);
+        verify(products, never()).delete(any());
+    }
+
+    @Test
+    void deleteRacingWithASaleIsInUseNotA500() {
+        when(products.findById(7L)).thenReturn(Optional.of(new Product()));
+        doThrow(new DataIntegrityViolationException("fk")).when(products).flush();
+
+        assertThatThrownBy(() -> service.delete(7L)).isInstanceOf(InUseException.class);
     }
 
     @Test

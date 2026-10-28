@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 class TaxIdTest {
 
     @ParameterizedTest
-    @ValueSource(strings = {"52998224725", "11144477735", "11222333000181", "45723174000110"})
+    @ValueSource(strings = {"52998224725", "11144477735", "12345678909", "11222333000181", "45723174000110"})
     void acceptsValidCpfAndCnpj(String digits) {
         assertThat(TaxId.isValid(digits)).isTrue();
     }
@@ -40,5 +40,6 @@ class TaxIdTest {
         assertThat(TaxId.mask("52998224725")).isEqualTo("***.982.247-**");
         assertThat(TaxId.mask("11222333000181")).isEqualTo("**.222.333/0001-**");
         assertThat(TaxId.mask(null)).isNull();
+        assertThat(TaxId.mask("123")).as("unexpected length reveals nothing").isEqualTo("***");
     }
 }
