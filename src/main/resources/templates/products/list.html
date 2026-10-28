@@ -59,6 +59,7 @@
                 <span th:unless="${p.active}" class="pill pill--off">Inativo</span>
             </td>
             <td class="actions">
+                <a th:href="@{/stock(productId=${p.id})}">Estoque</a>
                 <a th:href="@{/products/{id}/edit(id=${p.id})}">Editar</a>
                 <form method="post" th:action="@{/products/{id}/delete(id=${p.id})}"
                       onsubmit="return confirm('Excluir este produto?');">

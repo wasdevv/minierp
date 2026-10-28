@@ -34,8 +34,9 @@ public class ProductForm {
     @Digits(integer = 10, fraction = 2, message = "Use no máximo 10 dígitos inteiros e 2 casas decimais.")
     private BigDecimal price;
 
-    @NotNull(message = "Informe o estoque.")
-    @PositiveOrZero(message = "O estoque não pode ser negativo.")
+    /** Only on creation; afterwards stock changes through receipts and adjustments, which keep a history. */
+    @NotNull(message = "Informe o estoque inicial.", groups = OnCreate.class)
+    @PositiveOrZero(message = "O estoque não pode ser negativo.", groups = OnCreate.class)
     private Integer stockQuantity = 0;
 
     private boolean active = true;
@@ -55,13 +56,21 @@ public class ProductForm {
         return form;
     }
 
+    /** Copies everything but the stock, which only {@link #initialStock()} sets, on creation. */
     public void applyTo(Product product) {
         product.setName(name);
         product.setSku(sku);
         product.setDescription(description);
         product.setPrice(price);
-        product.setStockQuantity(stockQuantity);
         product.setActive(active);
+    }
+
+    public int initialStock() {
+        return stockQuantity == null ? 0 : stockQuantity;
+    }
+
+    /** Validation group of the fields that only the creation form has. */
+    public interface OnCreate {
     }
 
     public String getName() {

@@ -23,10 +23,12 @@ public class ProductService {
 
     private final ProductRepository products;
     private final SaleItemRepository saleItems;
+    private final StockService stock;
 
-    public ProductService(ProductRepository products, SaleItemRepository saleItems) {
+    public ProductService(ProductRepository products, SaleItemRepository saleItems, StockService stock) {
         this.products = products;
         this.saleItems = saleItems;
+        this.stock = stock;
     }
 
     @Transactional(readOnly = true)
@@ -51,7 +53,10 @@ public class ProductService {
         }
         Product product = new Product();
         form.applyTo(product);
-        return saveUnique(product);
+        product.setStockQuantity(form.initialStock());
+        Product saved = saveUnique(product);
+        stock.recordInitial(saved);
+        return saved;
     }
 
     @Transactional
@@ -75,6 +80,8 @@ public class ProductService {
             throw new InUseException(IN_USE);
         }
         try {
+            // Never sold: the ledger only holds its initial stock, receipts and adjustments, which go with it.
+            stock.forget(product);
             products.delete(product);
             products.flush();
         } catch (DataIntegrityViolationException e) {

@@ -963,3 +963,29 @@ a.rows__main:hover strong { color: var(--primary); }
   .sale-item { grid-template-columns: 1fr 90px; }
   .sale-item__subtotal { grid-column: 1 / -1; text-align: left; }
 }
+
+/* ==========================================================
+   Estoque: entradas, ajustes e histórico
+   ========================================================== */
+
+.stock-forms .form { max-width: none; }
+.stock-forms .section-label { margin-top: 0; }
+.history-header { margin-top: 8px; }
+.label { display: block; margin: 18px 0 6px; font-size: 13px; font-weight: 600; }
+.readonly-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+.readonly-field a { font-size: 13px; font-weight: 500; text-decoration: none; }
+.qty-in { color: var(--ok); font-weight: 600; }
+.qty-out { color: var(--danger); font-weight: 600; }
+.pill.movement--receipt, .pill.movement--initial { background: var(--primary-50); color: var(--primary); }
+.pill.movement--adjustment { background: var(--warn-50); color: var(--warn); }
+.pill.movement--sale { background: var(--border-soft); color: var(--muted); }
+.pill.movement--cancellation { background: var(--danger-50); color: var(--danger); }

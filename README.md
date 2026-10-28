@@ -109,6 +109,10 @@ src/
 - `version`: lock otimista (`V4__add_product_version.sql`); a edição de um produto alterado depois que o formulário abriu é recusada, para não sobrescrever uma baixa de estoque.
 - `created_at` e `updated_at`: datas de auditoria.
 
+### `stock_movements` (implementado em `V6__create_stock_movements.sql`)
+- Histórico de cada mudança de estoque: tipo (estoque inicial, entrada, ajuste, venda, cancelamento), quantidade com sinal, saldo depois, motivo, venda associada, data e usuário.
+- `products.stock_quantity` continua sendo o saldo atual; a soma das movimentações de um produto é sempre igual a ele (há teste para isso). Produtos que já existiam começam o histórico com o saldo que tinham.
+
 ### `customers` (implementado em `V2__create_customers.sql`)
 - `id`: identificador.
 - `name`: nome do cliente (obrigatório).

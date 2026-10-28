@@ -37,12 +37,15 @@ public class SaleService {
     private final SaleRepository sales;
     private final ProductRepository products;
     private final CustomerRepository customers;
+    private final StockService stock;
     private final Clock clock;
 
-    public SaleService(SaleRepository sales, ProductRepository products, CustomerRepository customers, Clock clock) {
+    public SaleService(SaleRepository sales, ProductRepository products, CustomerRepository customers,
+                       StockService stock, Clock clock) {
         this.sales = sales;
         this.products = products;
         this.customers = customers;
+        this.stock = stock;
         this.clock = clock;
     }
 
@@ -107,7 +110,9 @@ public class SaleService {
         sale.setCustomer(customer);
         sale.setSaleDate(OffsetDateTime.now(clock));
         sale.setTotalAmount(total);
-        return sales.save(sale);
+        Sale saved = sales.save(sale);
+        stock.recordSale(saved);
+        return saved;
     }
 
     /**
@@ -133,6 +138,7 @@ public class SaleService {
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
         sale.getItems().forEach(item -> byId.get(item.getProduct().getId()).addStock(item.getQuantity()));
         sale.cancel(OffsetDateTime.now(clock), why);
+        stock.recordCancellation(sale, List.copyOf(byId.values()));
         return sale;
     }
 
