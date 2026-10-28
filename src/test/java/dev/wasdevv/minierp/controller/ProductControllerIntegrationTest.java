@@ -268,6 +268,20 @@ class ProductControllerIntegrationTest {
                 .andExpect(content().string(containsString("R$ 4.599,90")));
     }
 
+    @Test
+    void flagsLowStockAndInactiveProducts() throws Exception {
+        save("Mochila", "MC-01", "129.00", 10);
+        Product inactive = save("Estojo", "ES-01", "9.90", 11);
+        inactive.setActive(false);
+        products.save(inactive);
+
+        mvc.perform(get("/products"))
+                .andExpect(content().string(containsString("<span class=\"stock-low\" title=\"Estoque baixo\">10</span>")))
+                .andExpect(content().string(not(containsString("title=\"Estoque baixo\">11<"))))
+                .andExpect(content().string(containsString("<span class=\"pill pill--off\">Inativo</span>")))
+                .andExpect(content().string(containsString("aria-current=\"page\"")));
+    }
+
     private Product save(String name, String sku, String price, int stock) {
         Product product = new Product();
         product.setName(name);

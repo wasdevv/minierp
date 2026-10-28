@@ -25,6 +25,8 @@ public class ProductController {
 
     private static final String FORM = "products/form";
     private static final Sort LIST_ORDER = Sort.by("name", "id");
+    /** At or below this quantity the list flags the stock as low. */
+    static final int LOW_STOCK = 10;
 
     private final ProductService service;
 
@@ -40,6 +42,7 @@ public class ProductController {
         Pageable page = PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), LIST_ORDER);
         model.addAttribute("page", service.search(query, page));
         model.addAttribute("q", query == null ? "" : query.strip());
+        model.addAttribute("lowStock", LOW_STOCK);
         return "products/list";
     }
 

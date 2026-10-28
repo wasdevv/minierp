@@ -7,10 +7,10 @@
     <link rel="stylesheet" th:href="@{/css/app.css}">
 </head>
 <body>
-<header th:fragment="nav" class="topbar">
+<header th:fragment="nav(section)" class="topbar">
     <a class="brand" th:href="@{/}">Mini ERP</a>
     <nav>
-        <a th:href="@{/products}">Produtos</a>
+        <a th:href="@{/products}" th:attr="aria-current=${section == 'products'} ? 'page' : null">Produtos</a>
     </nav>
 </header>
 <div th:fragment="notice" th:if="${notice}" class="notice" role="status" th:text="${notice}"></div>

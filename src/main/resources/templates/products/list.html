@@ -2,10 +2,13 @@
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
 <head th:replace="~{fragments/layout :: head('Produtos')}"></head>
 <body>
-<header th:replace="~{fragments/layout :: nav}"></header>
+<header th:replace="~{fragments/layout :: nav('products')}"></header>
 <main>
     <div class="page-header">
-        <h1>Produtos</h1>
+        <div>
+            <h1>Produtos</h1>
+            <p class="subtitle">Gerencie seu catálogo, preços e estoque</p>
+        </div>
         <a class="button" th:href="@{/products/new}">Novo produto</a>
     </div>
 
@@ -30,7 +33,7 @@
             <th class="num">Preço</th>
             <th class="num">Estoque</th>
             <th>Situação</th>
-            <th><span class="visually-hidden">Ações</span></th>
+            <th class="num"><span class="visually-hidden">Ações</span></th>
         </tr>
         </thead>
         <tbody>
@@ -38,13 +41,19 @@
             <td th:text="${p.sku}">SKU-1</td>
             <td th:text="${p.name}">Produto</td>
             <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
-            <td class="num" th:text="${p.stockQuantity}">0</td>
-            <td th:text="${p.active} ? 'Ativo' : 'Inativo'">Ativo</td>
+            <td class="num">
+                <span th:if="${p.stockQuantity <= lowStock}" class="stock-low" title="Estoque baixo" th:text="${p.stockQuantity}">0</span>
+                <span th:unless="${p.stockQuantity <= lowStock}" th:text="${p.stockQuantity}">0</span>
+            </td>
+            <td>
+                <span th:if="${p.active}" class="pill">Ativo</span>
+                <span th:unless="${p.active}" class="pill pill--off">Inativo</span>
+            </td>
             <td class="actions">
                 <a th:href="@{/products/{id}/edit(id=${p.id})}">Editar</a>
                 <form method="post" th:action="@{/products/{id}/delete(id=${p.id})}"
                       onsubmit="return confirm('Excluir este produto?');">
-                    <button type="submit" class="link danger">Excluir</button>
+                    <button type="submit" class="danger">Excluir</button>
                 </form>
             </td>
         </tr>
