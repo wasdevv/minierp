@@ -1,6 +1,7 @@
 package dev.wasdevv.minierp.repository;
 
 import dev.wasdevv.minierp.model.Customer;
+import java.util.List;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -10,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 public interface CustomerRepository extends JpaRepository<Customer, Long> {
 
     boolean existsByDocument(String document);
+
+    List<Customer> findAllByOrderByNameAsc();
 
     boolean existsByDocumentAndIdNot(String document, Long id);
 

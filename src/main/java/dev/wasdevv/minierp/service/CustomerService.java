@@ -2,10 +2,12 @@ package dev.wasdevv.minierp.service;
 
 import dev.wasdevv.minierp.dto.CustomerForm;
 import dev.wasdevv.minierp.exception.DuplicateDocumentException;
+import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
 import dev.wasdevv.minierp.model.Customer;
 import dev.wasdevv.minierp.model.TaxId;
 import dev.wasdevv.minierp.repository.CustomerRepository;
+import dev.wasdevv.minierp.repository.SaleRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -15,10 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class CustomerService {
 
-    private final CustomerRepository customers;
+    static final String IN_USE = "Este cliente tem vendas registradas e não pode ser excluído.";
 
-    public CustomerService(CustomerRepository customers) {
+    private final CustomerRepository customers;
+    private final SaleRepository sales;
+
+    public CustomerService(CustomerRepository customers, SaleRepository sales) {
         this.customers = customers;
+        this.sales = sales;
     }
 
     @Transactional(readOnly = true)
@@ -57,9 +63,19 @@ public class CustomerService {
         return saveUnique(customer);
     }
 
+    /** A customer with sales stays, so the sales keep saying who bought. */
     @Transactional
     public void delete(Long id) {
-        customers.delete(get(id));
+        Customer customer = get(id);
+        if (sales.existsByCustomerId(id)) {
+            throw new InUseException(IN_USE);
+        }
+        try {
+            customers.delete(customer);
+            customers.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new InUseException(IN_USE);
+        }
     }
 
     /** The exists check races with a concurrent insert; the unique constraint is what actually decides. */

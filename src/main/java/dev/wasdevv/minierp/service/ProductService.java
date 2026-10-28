@@ -2,9 +2,11 @@ package dev.wasdevv.minierp.service;
 
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
+import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.repository.ProductRepository;
+import dev.wasdevv.minierp.repository.SaleItemRepository;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -14,10 +16,14 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ProductService {
 
-    private final ProductRepository products;
+    static final String IN_USE = "Este produto já foi vendido e não pode ser excluído. Desmarque \"Ativo\" para retirá-lo das vendas.";
 
-    public ProductService(ProductRepository products) {
+    private final ProductRepository products;
+    private final SaleItemRepository saleItems;
+
+    public ProductService(ProductRepository products, SaleItemRepository saleItems) {
         this.products = products;
+        this.saleItems = saleItems;
     }
 
     @Transactional(readOnly = true)
@@ -53,9 +59,19 @@ public class ProductService {
         return saveUnique(product);
     }
 
+    /** Sold products stay: their sale items point at them. Deactivating is the way to retire one. */
     @Transactional
     public void delete(Long id) {
-        products.delete(get(id));
+        Product product = get(id);
+        if (saleItems.existsByProductId(id)) {
+            throw new InUseException(IN_USE);
+        }
+        try {
+            products.delete(product);
+            products.flush();
+        } catch (DataIntegrityViolationException e) {
+            throw new InUseException(IN_USE);
+        }
     }
 
     /** The exists check races with a concurrent insert; the unique constraint is what actually decides. */

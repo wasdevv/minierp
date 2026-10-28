@@ -2,6 +2,7 @@ package dev.wasdevv.minierp.controller;
 
 import dev.wasdevv.minierp.dto.CustomerForm;
 import dev.wasdevv.minierp.exception.DuplicateDocumentException;
+import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.service.CustomerService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -92,7 +93,12 @@ public class CustomerController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirect) {
-        service.delete(id);
+        try {
+            service.delete(id);
+        } catch (InUseException e) {
+            redirect.addFlashAttribute("alert", e.getMessage());
+            return "redirect:/customers";
+        }
         redirect.addFlashAttribute("notice", "Cliente excluído.");
         return "redirect:/customers";
     }

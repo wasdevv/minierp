@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Vendas')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('sales')}"></header>
+<main>
+    <div class="page-header">
+        <div>
+            <h1>Vendas</h1>
+            <p class="subtitle">Histórico de vendas registradas</p>
+        </div>
+        <a class="button" th:href="@{/sales/new}">Nova venda</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <p th:if="${page.empty}" class="empty">Nenhuma venda registrada.</p>
+
+    <table th:unless="${page.empty}">
+        <thead>
+        <tr>
+            <th>Nº</th>
+            <th>Cliente</th>
+            <th>Data</th>
+            <th class="num">Itens</th>
+            <th class="num">Total</th>
+            <th class="num"><span class="visually-hidden">Ações</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="s : ${page.content}">
+            <td th:text="|#${s.id}|">#1</td>
+            <td th:text="${s.customer} ? ${s.customer.name} : 'Consumidor final'">Cliente</td>
+            <td th:text="${#temporals.format(s.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</td>
+            <td class="num" th:text="${s.unitCount}">1</td>
+            <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(s.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            <td class="actions"><a th:href="@{/sales/{id}(id=${s.id})}">Ver</a></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pagination" th:if="${page.totalPages > 1}" aria-label="Paginação">
+        <a th:if="${page.hasPrevious()}" th:href="@{/sales(page=${page.number - 1})}">Anterior</a>
+        <span th:text="|Página ${page.number + 1} de ${page.totalPages}|">Página 1 de 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/sales(page=${page.number + 1})}">Próxima</a>
+    </nav>
+    <p class="muted" th:unless="${page.empty}" th:text="|${page.totalElements} venda(s)|">0 venda(s)</p>
+</main>
+</body>
+</html>

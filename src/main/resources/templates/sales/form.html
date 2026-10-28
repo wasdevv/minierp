@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nova venda')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('sales')}"></header>
+<main>
+    <h1>Nova venda</h1>
+
+    <form class="form form--wide" method="post" th:object="${sale}" th:action="@{/sales}" novalidate>
+        <!-- Enter submits the first submit button in the form; without this one it would be "Remover". -->
+        <button type="submit" class="visually-hidden" tabindex="-1" aria-hidden="true">Registrar venda</button>
+        <div class="errors" th:unless="${#lists.isEmpty(problems)}" role="alert">
+            <p>Não foi possível registrar a venda:</p>
+            <ul>
+                <li th:each="problem : ${problems}" th:text="${problem}">Problema</li>
+            </ul>
+        </div>
+
+        <label for="customerId">Cliente <span class="muted">(opcional)</span></label>
+        <select id="customerId" th:field="*{customerId}">
+            <option value="">Consumidor final</option>
+            <option th:each="c : ${customers}" th:value="${c.id}" th:text="${c.name}">Cliente</option>
+        </select>
+
+        <p class="section-label">Itens</p>
+        <p th:if="${#lists.isEmpty(products)}" class="empty">
+            Nenhum produto ativo. <a th:href="@{/products/new}">Cadastre um produto</a> antes de vender.
+        </p>
+        <div class="sale-items" th:unless="${#lists.isEmpty(products)}">
+            <div class="sale-item" th:each="item, row : *{items}">
+                <div class="sale-item__product">
+                    <label th:for="|items${row.index}.productId|" th:text="|Produto ${row.count}|">Produto 1</label>
+                    <select th:field="*{items[__${row.index}__].productId}">
+                        <option value="">Escolha um produto</option>
+                        <option th:each="p : ${products}" th:value="${p.id}"
+                                th:text="|${p.name} · ${p.sku} · R$ ${#numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}|">Produto</option>
+                    </select>
+                </div>
+                <div class="sale-item__quantity">
+                    <label th:for="|items${row.index}.quantity|">Qtd.</label>
+                    <input type="number" min="1" step="1" th:field="*{items[__${row.index}__].quantity}">
+                </div>
+                <button type="submit" class="ghost danger" name="removeItem" th:value="${row.index}"
+                        th:attr="aria-label=|Remover item ${row.count}|" formnovalidate>Remover</button>
+            </div>
+            <button type="submit" class="ghost" name="addItem" value="1" formnovalidate>+ Adicionar item</button>
+        </div>
+
+        <div class="sale-total">
+            <span>Total estimado</span>
+            <strong th:text="${'R$ ' + #numbers.formatDecimal(estimatedTotal, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</strong>
+        </div>
+        <p class="muted hint">O total é recalculado no servidor com os preços atuais ao registrar.</p>
+
+        <div class="form-actions">
+            <button type="submit">Registrar venda</button>
+            <a th:href="@{/sales}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

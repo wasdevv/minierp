@@ -2,6 +2,7 @@ package dev.wasdevv.minierp.controller;
 
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
+import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -95,7 +96,12 @@ public class ProductController {
 
     @PostMapping("/{id}/delete")
     public String delete(@PathVariable Long id, RedirectAttributes redirect) {
-        service.delete(id);
+        try {
+            service.delete(id);
+        } catch (InUseException e) {
+            redirect.addFlashAttribute("alert", e.getMessage());
+            return "redirect:/products";
+        }
         redirect.addFlashAttribute("notice", "Produto excluído.");
         return "redirect:/products";
     }

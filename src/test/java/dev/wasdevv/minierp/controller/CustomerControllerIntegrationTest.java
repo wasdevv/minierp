@@ -15,44 +15,20 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import dev.wasdevv.minierp.model.Customer;
 import dev.wasdevv.minierp.repository.CustomerRepository;
-import dev.wasdevv.minierp.support.RequiresDatabase;
-import dev.wasdevv.minierp.support.TestDatabase;
-import org.junit.jupiter.api.BeforeEach;
+import dev.wasdevv.minierp.support.IntegrationTest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.springframework.test.web.servlet.MockMvc;
 
 /** Fictitious customers only; the CPFs/CNPJs are the usual check-digit test numbers. */
-@ExtendWith(RequiresDatabase.class)
-@SpringBootTest
-@AutoConfigureMockMvc
-class CustomerControllerIntegrationTest {
+class CustomerControllerIntegrationTest extends IntegrationTest {
 
     private static final String CPF = "52998224725";
     private static final String OTHER_CPF = "11144477735";
     private static final String CNPJ = "11222333000181";
 
-    @DynamicPropertySource
-    static void database(DynamicPropertyRegistry registry) {
-        TestDatabase.register(registry);
-    }
-
-    @Autowired
-    private MockMvc mvc;
-
     @Autowired
     private CustomerRepository customers;
-
-    @BeforeEach
-    void cleanDatabase() {
-        customers.deleteAll();
-    }
 
     @Test
     void createsCustomerAndNormalizesInput() throws Exception {
