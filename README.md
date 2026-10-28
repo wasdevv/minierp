@@ -246,6 +246,21 @@ mvn spring-boot:run
 
 Acesse `http://localhost:8080`, caso a aplicação esteja configurada para essa porta e possua uma página inicial.
 
+### Com Docker Compose
+
+O `compose.yaml` sobe o PostgreSQL 17 e a aplicação:
+
+```bash
+docker compose up --build        # banco + app em http://localhost:8080
+docker compose up -d db          # só o banco, para rodar ./mvnw na máquina
+```
+
+- O banco `mini_erp` é criado pelo container. Na primeira subida do volume, `docker/postgres/init/` também cria o `mini_erp_test`, usado pelos testes de integração:
+  `MINIERP_TEST_JDBC_URL=jdbc:postgresql://localhost:5432/mini_erp_test MINIERP_TEST_DB_USER=mini_erp MINIERP_TEST_DB_PASSWORD=mini_erp_local ./mvnw verify`
+- A senha padrão (`mini_erp_local`) existe só para o ambiente local funcionar sem configuração. Para trocar, crie um `.env` (ignorado pelo git) com `DB_PASSWORD=...`; `DB_PORT` e `SERVER_PORT` mudam as portas expostas.
+- A imagem (`Dockerfile`) compila com o Maven Wrapper em JDK 21 e roda só com o JRE, com usuário sem privilégios. Os testes não rodam no build da imagem, porque precisam de banco.
+- Os dados ficam no volume `db-data`; `docker compose down -v` apaga tudo.
+
 ## Testes
 
 Execute a suíte com:
@@ -316,7 +331,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 - [x] Implementar baixa transacional de estoque.
 - [x] Criar relatório de vendas em PDF.
 - [x] Adicionar testes unitários e de integração.
-- [ ] Adicionar Docker Compose para desenvolvimento, se útil.
+- [x] Adicionar Docker Compose para desenvolvimento, se útil.
 - [ ] Criar screenshots reais da interface.
 - [ ] Documentar endpoints ou fluxos principais.
 - [ ] Configurar CI para executar os testes.

@@ -1,0 +1,38 @@
+# Local development only. The password default below exists so `docker compose up` works out of the box;
+# never reuse it anywhere shared. Override it in a .env file (git-ignored): DB_PASSWORD=...
+name: mini-erp
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: mini_erp
+      POSTGRES_USER: mini_erp
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-mini_erp_local}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+      # Runs only when the volume is created: adds the mini_erp_test database for ./mvnw verify.
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mini_erp -d mini_erp"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build: .
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/mini_erp
+      DB_USERNAME: mini_erp
+      DB_PASSWORD: ${DB_PASSWORD:-mini_erp_local}
+      MINIERP_TIME_ZONE: ${MINIERP_TIME_ZONE:-America/Sao_Paulo}
+    ports:
+      - "${SERVER_PORT:-8080}:8080"
+
+volumes:
+  db-data:
