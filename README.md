@@ -233,6 +233,8 @@ $env:MINIERP_ADMIN_PASSWORD="uma_senha_de_8+_caracteres"
 
 Não versione senhas, tokens, arquivos `.env` reais ou credenciais de qualquer ambiente.
 
+`MINIERP_STORE_NAME` (padrão `Mini ERP`) é o nome impresso no recibo e na mensagem de WhatsApp da venda.
+
 Todas as páginas exigem login. A conta de operador vem de `MINIERP_ADMIN_USER` (padrão `admin`) e `MINIERP_ADMIN_PASSWORD`, que é **obrigatória** e precisa ter no mínimo 8 caracteres: sem ela a aplicação não sobe, em vez de gerar uma senha e escrevê-la no log.
 
 ### 4. Executar

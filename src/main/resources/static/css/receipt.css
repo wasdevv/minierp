@@ -1,0 +1,40 @@
+/* Printable receipt: a narrow paper slip on screen, 80 mm on a thermal printer, A4-friendly elsewhere. */
+* { box-sizing: border-box; }
+body { margin: 0; padding: 24px 16px; background: #121212; color: #111; font: 13px/1.45 ui-monospace, Menlo, Consolas, monospace; }
+
+.toolbar { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 20px; font-family: system-ui, sans-serif; }
+.toolbar button, .toolbar a {
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 999px;
+  background: #232326;
+  color: #fafafa;
+  font: 500 13px system-ui, sans-serif;
+  text-decoration: none;
+  cursor: pointer;
+}
+.toolbar button { background: #2b6cff; border-color: #2b6cff; }
+
+.receipt { position: relative; width: min(320px, 100%); margin: 0 auto; padding: 20px 18px; background: #fff; box-shadow: 0 20px 50px rgba(0, 0, 0, .5); }
+.receipt header { display: grid; gap: 2px; padding-bottom: 10px; border-bottom: 1px dashed #999; text-align: center; }
+.store { font-size: 16px; }
+.cancelled { margin: 10px 0 0; padding: 4px; border: 2px solid #c00; color: #c00; font-weight: 700; text-align: center; letter-spacing: .1em; }
+.receipt table { width: 100%; margin: 10px 0; border-collapse: collapse; }
+.receipt td { padding: 4px 0; vertical-align: top; }
+.receipt td small { display: block; color: #555; }
+.num { text-align: right; white-space: nowrap; }
+.receipt dl { margin: 0; padding-top: 8px; border-top: 1px dashed #999; }
+.receipt dl div { display: flex; justify-content: space-between; }
+.receipt dt, .receipt dd { margin: 0; }
+.receipt .total { margin: 4px 0; font-size: 16px; font-weight: 700; }
+.receipt footer { margin-top: 12px; padding-top: 10px; border-top: 1px dashed #999; text-align: center; }
+.receipt footer p { margin: 0; }
+.receipt footer small { color: #555; }
+.receipt--cancelled table, .receipt--cancelled dl { opacity: .6; }
+
+@media print {
+  @page { size: 80mm auto; margin: 4mm; }
+  body { padding: 0; background: #fff; }
+  .toolbar { display: none; }
+  .receipt { width: 100%; padding: 0; box-shadow: none; }
+}

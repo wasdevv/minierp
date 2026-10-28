@@ -34,5 +34,7 @@ minierp:
     username: ${MINIERP_ADMIN_USER:admin}
     # Required, at least 8 characters; the app does not start without it.
     password: ${MINIERP_ADMIN_PASSWORD:}
+  # Name printed on receipts and in the WhatsApp message.
+  store-name: ${MINIERP_STORE_NAME:Mini ERP}
   # Zone used to show dates; they are stored as instants (TIMESTAMPTZ).
   time-zone: ${MINIERP_TIME_ZONE:America/Sao_Paulo}

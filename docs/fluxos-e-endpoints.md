@@ -58,6 +58,7 @@ O estoque de um produto só muda por estoque inicial (no cadastro), entrada, aju
 | POST | `/sales` com `removeItem=<índice>` | o formulário atual | O formulário sem aquela linha; nada é gravado |
 | POST | `/sales` | `customerId` (opcional), `items[i].productId`, `items[i].quantity`, `paymentMethod` (`PIX`, `CASH`, `DEBIT_CARD`, `CREDIT_CARD`, `ON_ACCOUNT`), `discountValue` + `discountType` (`AMOUNT` ou `PERCENT`, opcional), `amountReceived` (dinheiro, opcional) | Sucesso: redireciona para `/sales/{id}`. Recusa: formulário com a lista de motivos |
 | GET | `/sales/{id}` | | Detalhe com itens, preços praticados, total e situação. 404 se não existir |
+| GET | `/sales/{id}/receipt` | | Recibo para imprimir (80 mm, ou "Salvar como PDF" no diálogo de impressão), com botões de imprimir e de WhatsApp. Não é documento fiscal |
 | POST | `/sales/{id}/cancel` | `reason` (obrigatório, até 200 caracteres) | Redireciona para `/sales/{id}`: sucesso com aviso verde; motivo ausente ou venda já cancelada com aviso vermelho. 404 se não existir |
 
 Vendas não têm edição nem exclusão; o cancelamento as mantém no histórico.
