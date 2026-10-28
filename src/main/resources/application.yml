@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: mini-erp
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/mini_erp}
+    username: ${DB_USERNAME:mini_erp}
+    password: ${DB_PASSWORD:}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  thymeleaf:
+    cache: false
+  data:
+    web:
+      pageable:
+        max-page-size: 50
+
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    session:
+      tracking-modes: cookie
+  error:
+    include-stacktrace: never
+    include-message: never

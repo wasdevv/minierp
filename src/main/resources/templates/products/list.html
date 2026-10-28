@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Produtos')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav}"></header>
+<main>
+    <div class="page-header">
+        <h1>Produtos</h1>
+        <a class="button" th:href="@{/products/new}">Novo produto</a>
+    </div>
+
+    <div th:replace="~{fragments/layout :: notice}"></div>
+
+    <form class="search" method="get" th:action="@{/products}" role="search">
+        <input type="search" name="q" th:value="${q}" placeholder="Buscar por nome ou SKU" aria-label="Buscar produtos">
+        <button type="submit">Buscar</button>
+        <a th:if="${!#strings.isEmpty(q)}" th:href="@{/products}">Limpar</a>
+    </form>
+
+    <p th:if="${page.empty}" class="empty"
+       th:text="${#strings.isEmpty(q)} ? 'Nenhum produto cadastrado.' : 'Nenhum produto encontrado para a busca.'">
+        Nenhum produto cadastrado.
+    </p>
+
+    <table th:unless="${page.empty}">
+        <thead>
+        <tr>
+            <th>SKU</th>
+            <th>Nome</th>
+            <th class="num">Preço</th>
+            <th class="num">Estoque</th>
+            <th>Situação</th>
+            <th><span class="visually-hidden">Ações</span></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="p : ${page.content}">
+            <td th:text="${p.sku}">SKU-1</td>
+            <td th:text="${p.name}">Produto</td>
+            <td class="num" th:text="${'R$ ' + #numbers.formatDecimal(p.price, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</td>
+            <td class="num" th:text="${p.stockQuantity}">0</td>
+            <td th:text="${p.active} ? 'Ativo' : 'Inativo'">Ativo</td>
+            <td class="actions">
+                <a th:href="@{/products/{id}/edit(id=${p.id})}">Editar</a>
+                <form method="post" th:action="@{/products/{id}/delete(id=${p.id})}"
+                      onsubmit="return confirm('Excluir este produto?');">
+                    <button type="submit" class="link danger">Excluir</button>
+                </form>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <nav class="pagination" th:if="${page.totalPages > 1}" aria-label="Paginação">
+        <a th:if="${page.hasPrevious()}" th:href="@{/products(q=${q}, page=${page.number - 1})}">Anterior</a>
+        <span th:text="|Página ${page.number + 1} de ${page.totalPages}|">Página 1 de 1</span>
+        <a th:if="${page.hasNext()}" th:href="@{/products(q=${q}, page=${page.number + 1})}">Próxima</a>
+    </nav>
+    <p class="muted" th:unless="${page.empty}" th:text="|${page.totalElements} produto(s)|">0 produto(s)</p>
+</main>
+</body>
+</html>
