@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${productId} == null ? 'Novo produto' : 'Editar produto')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('products')}"></header>
+<main>
+    <h1 th:text="${productId} == null ? 'Novo produto' : 'Editar produto'">Novo produto</h1>
+
+    <form class="form" method="post" th:object="${product}"
+          th:action="${productId} == null ? @{/products} : @{/products/{id}(id=${productId})}" novalidate>
+        <div class="errors" th:if="${#fields.hasErrors('*')}" role="alert">
+            Corrija os campos destacados.
+        </div>
+
+        <label for="name">Nome</label>
+        <input id="name" type="text" th:field="*{name}" maxlength="120" required th:errorclass="invalid">
+        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+
+        <label for="sku">SKU</label>
+        <input id="sku" type="text" th:field="*{sku}" maxlength="40" required th:errorclass="invalid">
+        <p class="field-error" th:if="${#fields.hasErrors('sku')}" th:errors="*{sku}"></p>
+
+        <label for="description">Descrição <span class="muted">(opcional)</span></label>
+        <textarea id="description" th:field="*{description}" maxlength="1000" rows="3" th:errorclass="invalid"></textarea>
+        <p class="field-error" th:if="${#fields.hasErrors('description')}" th:errors="*{description}"></p>
+
+        <div class="row">
+            <div>
+                <label for="price">Preço (R$)</label>
+                <input id="price" type="number" th:field="*{price}" min="0" step="0.01" placeholder="19.90" required th:errorclass="invalid">
+                <p class="field-error" th:if="${#fields.hasErrors('price')}" th:errors="*{price}"></p>
+            </div>
+            <div>
+                <label for="stockQuantity">Estoque</label>
+                <input id="stockQuantity" type="number" th:field="*{stockQuantity}" min="0" step="1" required th:errorclass="invalid">
+                <p class="field-error" th:if="${#fields.hasErrors('stockQuantity')}" th:errors="*{stockQuantity}"></p>
+            </div>
+        </div>
+
+        <label class="checkbox"><input type="checkbox" th:field="*{active}"> Ativo</label>
+
+        <div class="form-actions">
+            <button type="submit">Salvar</button>
+            <a th:href="@{/products}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 > Projeto demonstrativo para praticar e apresentar conceitos de desenvolvimento backend com Java e Spring Boot, templates server-side, persistência relacional e geração de relatórios PDF.
 
-![Java](https://img.shields.io/badge/Java-17%2B-orange)
+![Java](https://img.shields.io/badge/Java-21-orange)
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Database-blue)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -23,10 +23,10 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 ## Funcionalidades planejadas
 
 ### Cadastros
-- [ ] Cadastro, consulta, edição e exclusão de produtos.
+- [x] Cadastro, consulta, edição e exclusão de produtos.
 - [ ] Cadastro, consulta, edição e exclusão de clientes.
-- [ ] Listagem com paginação e busca.
-- [ ] Validação de campos obrigatórios e dados inválidos.
+- [x] Listagem com paginação e busca (produtos).
+- [x] Validação de campos obrigatórios e dados inválidos (produtos).
 
 ### Vendas e estoque
 - [ ] Registrar uma venda com um ou mais itens.
@@ -43,10 +43,10 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 - [ ] Tratar períodos inválidos e resultados vazios.
 
 ### Qualidade e manutenção
-- [ ] Testes unitários para regras de negócio.
-- [ ] Testes de integração para persistência e endpoints.
-- [ ] Mensagens de erro claras para o usuário.
-- [ ] Instruções de execução reproduzíveis.
+- [x] Testes unitários para regras de negócio (produtos).
+- [x] Testes de integração para persistência e endpoints (produtos).
+- [x] Mensagens de erro claras para o usuário.
+- [x] Instruções de execução reproduzíveis.
 
 > Marque os itens conforme forem realmente implementados. Não apresente funcionalidades planejadas como já concluídas.
 
@@ -54,10 +54,11 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 
 | Tecnologia | Uso proposto |
 |---|---|
-| Java 17 ou superior | Linguagem principal |
-| Spring Boot 3.x | Configuração da aplicação e integração dos componentes |
+| Java 21 | Linguagem principal |
+| Spring Boot 3.5 | Configuração da aplicação e integração dos componentes |
 | Spring MVC | Rotas web e controllers |
 | Spring Data JPA / Hibernate | Persistência e mapeamento objeto-relacional |
+| Flyway | Migrations versionadas do schema (`src/main/resources/db/migration`) |
 | PostgreSQL | Banco de dados relacional |
 | Thymeleaf | Renderização de páginas HTML no servidor |
 | JasperReports | Geração de relatórios em PDF |
@@ -65,7 +66,7 @@ Este repositório é um projeto de estudo e demonstração. Ajuste as funcionali
 | JUnit 5 / Mockito | Testes unitários |
 | Spring Boot Test | Testes de integração |
 
-As versões devem ser definidas no `pom.xml` e compatíveis entre si. Caso a implementação use outras versões ou ferramentas, atualize esta seção.
+As versões estão no `pom.xml` (Spring Boot 3.5.16, que gerencia as demais). JasperReports entra na etapa de relatórios; ainda não é dependência.
 
 ## Arquitetura sugerida
 
@@ -74,7 +75,7 @@ A aplicação pode ser organizada em camadas:
 ```text
 src/
 ├── main/
-│   ├── java/com/example/minierp/
+│   ├── java/dev/wasdevv/minierp/
 │   │   ├── MiniErpApplication.java
 │   │   ├── controller/       # Rotas web e tratamento de requisições
 │   │   ├── service/          # Regras de negócio
@@ -89,17 +90,17 @@ src/
 │       ├── reports/          # Templates .jrxml do JasperReports
 │       └── application.yml
 └── test/
-    └── java/com/example/minierp/
+    └── java/dev/wasdevv/minierp/
 ```
 
-Essa estrutura é uma sugestão inicial, não uma afirmação sobre a estrutura já existente. Mantenha o pacote e a organização que fizerem sentido para o código real.
+É a estrutura usada no código. `reports/` ainda não existe: chega com o relatório em PDF.
 
 ## Modelo de dados sugerido
 
-### `products`
+### `products` (implementado em `V1__create_products.sql`)
 - `id`: identificador.
 - `name`: nome do produto.
-- `sku`: código único do produto.
+- `sku`: código único do produto, gravado em maiúsculas (`cn-01` e `CN-01` são o mesmo SKU).
 - `description`: descrição opcional.
 - `price`: preço atual de venda.
 - `stock_quantity`: quantidade disponível.
@@ -128,7 +129,7 @@ Essa estrutura é uma sugestão inicial, não uma afirmação sobre a estrutura 
 - `unit_price`: preço unitário registrado no momento da venda.
 - `subtotal`: subtotal do item.
 
-O modelo final deve ser refletido nas entidades, migrations e restrições reais. Use `BigDecimal` para valores monetários em Java, evitando `float` ou `double` para cálculos financeiros.
+Em `products`, preço e estoque negativos são barrados pela validação do formulário e também por `CHECK` no banco; o SKU único é garantido por constraint, não só pela checagem prévia. Use `BigDecimal` para valores monetários em Java, evitando `float` ou `double` para cálculos financeiros.
 
 ## Regras de negócio importantes
 
@@ -208,7 +209,7 @@ server:
   port: ${SERVER_PORT:8080}
 ```
 
-Ajuste `ddl-auto` ao mecanismo de schema adotado. Em projetos com migrations, prefira versionar as alterações do banco e evitar `create` ou `update` como estratégia de produção. Se não houver migrations implementadas, documente claramente como o schema é criado.
+O schema é criado pelo Flyway na subida da aplicação; o Hibernate só valida (`ddl-auto: validate`).
 
 No PowerShell, por exemplo:
 
@@ -256,7 +257,17 @@ No Windows:
 .\mvnw.cmd test
 ```
 
-Casos importantes para cobrir:
+Os testes de integração rodam contra um PostgreSQL real, indicado por variável de ambiente. Sem ela, a classe aparece como **skipped** no relatório (nunca como aprovada):
+
+```bash
+createdb mini_erp_test
+MINIERP_TEST_JDBC_URL=jdbc:postgresql://localhost:5432/mini_erp_test \
+MINIERP_TEST_DB_USER=postgres MINIERP_TEST_DB_PASSWORD=... ./mvnw test
+```
+
+O banco de teste é limpo antes de cada teste: não aponte para um banco com dados que importam.
+
+Casos importantes para cobrir (os de produtos já estão cobertos):
 
 - Criar, editar, consultar e excluir produtos.
 - Rejeitar preço negativo e quantidade inválida.
@@ -284,7 +295,7 @@ Se os testes de integração dependerem de PostgreSQL, documente como iniciar um
 
 ## Roadmap
 
-- [ ] Implementar CRUD de produtos.
+- [x] Implementar CRUD de produtos.
 - [ ] Implementar CRUD de clientes.
 - [ ] Implementar fluxo de vendas.
 - [ ] Implementar baixa transacional de estoque.

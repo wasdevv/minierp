@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Erro')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav(null)}"></header>
+<main>
+    <h1>Algo deu errado</h1>
+    <p>Não foi possível concluir a operação. Tente novamente em instantes.</p>
+    <a th:href="@{/products}">Voltar para produtos</a>
+</main>
+</body>
+</html>
