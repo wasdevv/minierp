@@ -4,10 +4,12 @@ import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
+import dev.wasdevv.minierp.exception.StaleProductException;
 import dev.wasdevv.minierp.model.Product;
 import dev.wasdevv.minierp.repository.ProductRepository;
 import dev.wasdevv.minierp.repository.SaleItemRepository;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,9 @@ public class ProductService {
     @Transactional
     public Product update(Long id, ProductForm form) {
         Product product = get(id);
+        if (form.getVersion() == null || form.getVersion() != product.getVersion()) {
+            throw new StaleProductException(id);
+        }
         if (products.existsBySkuAndIdNot(form.getSku(), id)) {
             throw new DuplicateSkuException(form.getSku());
         }
@@ -78,6 +83,8 @@ public class ProductService {
     private Product saveUnique(Product product) {
         try {
             return products.saveAndFlush(product);
+        } catch (ObjectOptimisticLockingFailureException e) {
+            throw new StaleProductException(product.getId());
         } catch (DataIntegrityViolationException e) {
             if (isSkuConstraint(e)) {
                 throw new DuplicateSkuException(product.getSku());

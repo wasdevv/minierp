@@ -56,13 +56,15 @@ public class SaleService {
     }
 
     /**
-     * Records a sale. Every price and total comes from the database at this moment; the form carries only
-     * product ids and quantities. Lines repeating a product are merged.
+     * Records a sale and takes its items out of stock, atomically. Every price and total comes from the
+     * database at this moment; the form carries only product ids and quantities. Lines repeating a product
+     * are merged, so a product's stock is checked against everything the sale asks for.
      */
     @Transactional
     public Sale create(SaleForm form) {
         Map<Long, Integer> quantities = validatedQuantities(form);
-        Map<Long, Product> byId = products.findAllById(quantities.keySet()).stream()
+        // Locked until commit: a concurrent sale of the same product waits here and then sees the new stock.
+        Map<Long, Product> byId = products.findAllForUpdate(quantities.keySet()).stream()
                 .collect(Collectors.toMap(Product::getId, Function.identity()));
 
         List<String> problems = new ArrayList<>();
@@ -76,6 +78,11 @@ public class SaleService {
             }
             if (!product.isActive()) {
                 problems.add("O produto " + product.getName() + " está inativo e não pode ser vendido.");
+                continue;
+            }
+            if (product.getStockQuantity() < line.getValue()) {
+                problems.add("Estoque insuficiente para " + product.getName() + ": disponível "
+                        + product.getStockQuantity() + ", solicitado " + line.getValue() + ".");
                 continue;
             }
             SaleItem item = new SaleItem(product, line.getValue());
@@ -94,6 +101,8 @@ public class SaleService {
             throw new SaleRejectedException(problems);
         }
 
+        // Same transaction as the sale insert: if anything below fails, the stock goes back too.
+        sale.getItems().forEach(item -> item.getProduct().removeStock(item.getQuantity()));
         sale.setCustomer(customer);
         sale.setSaleDate(OffsetDateTime.now(clock));
         sale.setTotalAmount(total);

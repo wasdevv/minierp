@@ -124,6 +124,7 @@ class ProductControllerIntegrationTest extends IntegrationTest {
         Product product = save("Caneta azul", "CN-01", "2.50", 10);
 
         mvc.perform(post("/products/{id}", product.getId())
+                        .param("version", "0")
                         .param("name", "Caneta preta")
                         .param("sku", "CN-01")
                         .param("price", "3.10")
@@ -145,6 +146,7 @@ class ProductControllerIntegrationTest extends IntegrationTest {
         Product other = save("Lápis", "LP-01", "1.00", 5);
 
         mvc.perform(post("/products/{id}", other.getId())
+                        .param("version", "0")
                         .param("name", "Lápis")
                         .param("sku", "CN-01")
                         .param("price", "1.00")
@@ -152,6 +154,33 @@ class ProductControllerIntegrationTest extends IntegrationTest {
                 .andExpect(model().attributeHasFieldErrorCode("product", "sku", "duplicate"));
 
         assertThat(products.findById(other.getId()).orElseThrow().getSku()).isEqualTo("LP-01");
+    }
+
+    @Test
+    void editFormCarriesTheVersion() throws Exception {
+        Product product = save("Caneta azul", "CN-01", "2.50", 10);
+
+        mvc.perform(get("/products/{id}/edit", product.getId()))
+                .andExpect(content().string(containsString("name=\"version\" value=\"0\"")));
+    }
+
+    @Test
+    void staleEditDoesNotOverwriteStockChangedMeanwhile() throws Exception {
+        Product product = save("Caneta azul", "CN-01", "2.50", 10);
+        product.setStockQuantity(7);
+        products.save(product);
+
+        mvc.perform(post("/products/{id}", product.getId())
+                        .param("version", "0")
+                        .param("name", "Caneta azul")
+                        .param("sku", "CN-01")
+                        .param("price", "2.50")
+                        .param("stockQuantity", "10")
+                        .param("active", "true"))
+                .andExpect(redirectedUrl("/products/" + product.getId() + "/edit"))
+                .andExpect(flash().attribute("alert", containsString("foi alterado")));
+
+        assertThat(products.findById(product.getId()).orElseThrow().getStockQuantity()).isEqualTo(7);
     }
 
     @Test

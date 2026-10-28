@@ -85,8 +85,9 @@ class SaleControllerIntegrationTest extends IntegrationTest {
         Product pen = product("Caneta", "CN-01", "2.50", true);
         Long id = createSale(null, pen, 2);
 
-        pen.setPrice(new BigDecimal("9.99"));
-        products.save(pen);
+        Product current = products.findById(pen.getId()).orElseThrow();
+        current.setPrice(new BigDecimal("9.99"));
+        products.save(current);
 
         mvc.perform(get("/sales/{id}", id))
                 .andExpect(content().string(containsString("R$ 2,50")))

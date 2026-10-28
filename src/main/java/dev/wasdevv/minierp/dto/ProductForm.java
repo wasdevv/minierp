@@ -40,6 +40,9 @@ public class ProductForm {
 
     private boolean active = true;
 
+    /** {@link Product#getVersion()} when the edit form was rendered; {@code null} for a new product. */
+    private Long version;
+
     public static ProductForm from(Product product) {
         ProductForm form = new ProductForm();
         form.setName(product.getName());
@@ -48,6 +51,7 @@ public class ProductForm {
         form.setPrice(product.getPrice());
         form.setStockQuantity(product.getStockQuantity());
         form.setActive(product.isActive());
+        form.setVersion(product.getVersion());
         return form;
     }
 
@@ -107,6 +111,14 @@ public class ProductForm {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     private static String trimToNull(String value) {

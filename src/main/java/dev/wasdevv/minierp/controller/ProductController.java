@@ -3,6 +3,7 @@ package dev.wasdevv.minierp.controller;
 import dev.wasdevv.minierp.dto.ProductForm;
 import dev.wasdevv.minierp.exception.DuplicateSkuException;
 import dev.wasdevv.minierp.exception.InUseException;
+import dev.wasdevv.minierp.exception.StaleProductException;
 import dev.wasdevv.minierp.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
@@ -89,6 +90,11 @@ public class ProductController {
         } catch (DuplicateSkuException e) {
             rejectDuplicateSku(result);
             return FORM;
+        } catch (StaleProductException e) {
+            redirect.addFlashAttribute("alert",
+                    "O produto foi alterado (por uma venda ou outra edição) depois que você abriu o formulário. "
+                            + "Confira os valores atuais e salve de novo.");
+            return "redirect:/products/" + id + "/edit";
         }
         redirect.addFlashAttribute("notice", "Produto atualizado.");
         return "redirect:/products";

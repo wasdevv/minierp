@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import org.hibernate.annotations.CreationTimestamp;
@@ -36,6 +37,10 @@ public class Product {
 
     @Column(nullable = false)
     private boolean active = true;
+
+    @Version
+    @Column(nullable = false)
+    private long version;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
@@ -95,6 +100,18 @@ public class Product {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public long getVersion() {
+        return version;
+    }
+
+    /** Takes {@code quantity} units out of stock; the caller has already checked there are enough. */
+    public void removeStock(int quantity) {
+        if (quantity > stockQuantity) {
+            throw new IllegalStateException("Not enough stock for product " + id);
+        }
+        stockQuantity -= quantity;
     }
 
     public OffsetDateTime getCreatedAt() {

@@ -54,7 +54,7 @@ class SaleServiceTest {
 
     @Test
     void computesSubtotalsAndTotalFromCurrentPrices() {
-        when(products.findAllById(anyCollection())).thenReturn(List.of(
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(
                 product(1L, "Caneta", "2.50", true), product(2L, "Caderno", "14.90", true)));
         when(sales.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
@@ -68,7 +68,7 @@ class SaleServiceTest {
 
     @Test
     void mergesLinesOfTheSameProduct() {
-        when(products.findAllById(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", true)));
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", true)));
         when(sales.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Sale sale = service.create(form(null, line(1L, 2), line(1L, 3)));
@@ -79,7 +79,7 @@ class SaleServiceTest {
 
     @Test
     void ignoresBlankRows() {
-        when(products.findAllById(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", true)));
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", true)));
         when(sales.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
 
         Sale sale = service.create(form(null, new SaleItemForm(), line(1L, 1), new SaleItemForm()));
@@ -110,7 +110,7 @@ class SaleServiceTest {
 
     @Test
     void rejectsInactiveAndMissingProducts() {
-        when(products.findAllById(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", false)));
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", false)));
 
         SaleRejectedException e = rejected(form(null, line(1L, 1), line(99L, 1)));
 
@@ -122,7 +122,7 @@ class SaleServiceTest {
 
     @Test
     void rejectsMissingCustomer() {
-        when(products.findAllById(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", true)));
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(product(1L, "Caneta", "2.50", true)));
         when(customers.findById(7L)).thenReturn(Optional.empty());
 
         assertThat(rejected(form(7L, line(1L, 1))).getReasons()).containsExactly("O cliente escolhido não existe mais.");
@@ -130,10 +130,56 @@ class SaleServiceTest {
 
     @Test
     void rejectsTotalThatDoesNotFitTheColumn() {
-        when(products.findAllById(anyCollection())).thenReturn(List.of(product(1L, "Iate", "9999999999.99", true)));
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(product(1L, "Iate", "9999999999.99", true)));
 
         assertThat(rejected(form(null, line(1L, 2))).getReasons())
                 .containsExactly("O total da venda passa do limite de R$ 9.999.999.999,99.");
+    }
+
+    @Test
+    void takesSoldUnitsOutOfStock() {
+        Product pen = product(1L, "Caneta", "2.50", true);
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(pen));
+        when(sales.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.create(form(null, line(1L, 30)));
+
+        assertThat(pen.getStockQuantity()).isEqualTo(70);
+    }
+
+    @Test
+    void sellingTheWholeStockIsAllowed() {
+        Product pen = product(1L, "Caneta", "2.50", true);
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(pen));
+        when(sales.save(any())).thenAnswer(invocation -> invocation.getArgument(0));
+
+        service.create(form(null, line(1L, 100)));
+
+        assertThat(pen.getStockQuantity()).isZero();
+    }
+
+    @Test
+    void rejectsQuantityAboveStockAndTouchesNoStock() {
+        Product pen = product(1L, "Caneta", "2.50", true);
+        Product notebook = product(2L, "Caderno", "14.90", true);
+        notebook.setStockQuantity(3);
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(pen, notebook));
+
+        assertThat(rejected(form(null, line(1L, 10), line(2L, 5))).getReasons())
+                .containsExactly("Estoque insuficiente para Caderno: disponível 3, solicitado 5.");
+        assertThat(pen.getStockQuantity()).as("valid line is not decremented either").isEqualTo(100);
+        assertThat(notebook.getStockQuantity()).isEqualTo(3);
+        verify(sales, never()).save(any());
+    }
+
+    @Test
+    void checksStockAgainstTheSumOfRepeatedLines() {
+        Product notebook = product(2L, "Caderno", "14.90", true);
+        notebook.setStockQuantity(5);
+        when(products.findAllForUpdate(anyCollection())).thenReturn(List.of(notebook));
+
+        assertThat(rejected(form(null, line(2L, 3), line(2L, 3))).getReasons())
+                .containsExactly("Estoque insuficiente para Caderno: disponível 5, solicitado 6.");
     }
 
     @Test
@@ -171,6 +217,7 @@ class SaleServiceTest {
         product.setSku("SKU-" + id);
         product.setPrice(new BigDecimal(price));
         product.setActive(active);
+        product.setStockQuantity(100);
         try {
             Field field = Product.class.getDeclaredField("id");
             field.setAccessible(true);
