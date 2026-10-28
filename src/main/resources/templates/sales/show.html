@@ -15,7 +15,12 @@
                 <span th:replace="~{fragments/layout :: saleStatus(${sale})}"></span>
             </p>
         </div>
-        <a class="button" th:href="@{/sales/new}">Nova venda</a>
+        <div class="page-actions">
+            <a class="button button--pdf" th:href="@{/sales/{id}/receipt(id=${sale.id})}" target="_blank" rel="noopener">Imprimir recibo</a>
+            <a class="button button--pdf whatsapp-button" th:href="${whatsAppUrl}" target="_blank" rel="noopener"
+               th:text="${sale.customer != null and sale.customer.phone != null} ? |WhatsApp para ${sale.customer.formattedPhone}| : 'Enviar pelo WhatsApp'">Enviar pelo WhatsApp</a>
+            <a class="button" th:href="@{/sales/new}">Nova venda</a>
+        </div>
     </div>
 
     <div th:replace="~{fragments/layout :: notice}"></div>

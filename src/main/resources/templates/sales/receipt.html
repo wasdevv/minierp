@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="|Recibo · Venda #${sale.id}|">Recibo</title>
+    <link rel="stylesheet" th:href="@{/css/receipt.css}">
+</head>
+<body>
+<nav class="toolbar">
+    <button type="button" onclick="window.print()">Imprimir</button>
+    <a th:href="${whatsAppUrl}" target="_blank" rel="noopener">Enviar pelo WhatsApp</a>
+    <a th:href="@{/sales/{id}(id=${sale.id})}">Voltar para a venda</a>
+</nav>
+
+<main class="receipt" th:classappend="${sale.cancelled} ? 'receipt--cancelled'">
+    <header>
+        <strong class="store" th:text="${storeName}">Mini ERP</strong>
+        <span th:text="|Venda #${sale.id}|">Venda #1</span>
+        <span th:text="${#temporals.format(sale.saleDate.atZoneSameInstant(zone), 'dd/MM/yyyy HH:mm')}">01/01/2026 10:00</span>
+        <span th:if="${sale.customer}" th:text="|Cliente: ${sale.customer.name}|">Cliente</span>
+    </header>
+
+    <p class="cancelled" th:if="${sale.cancelled}">VENDA CANCELADA</p>
+
+    <table>
+        <tr th:each="item : ${sale.items}">
+            <td>
+                <span th:text="${item.product.name}">Produto</span>
+                <small th:text="|${item.quantity} x ${#numbers.formatDecimal(item.unitPrice, 1, 'POINT', 2, 'COMMA')}|">1 x 0,00</small>
+            </td>
+            <td class="num" th:text="${#numbers.formatDecimal(item.subtotal, 1, 'POINT', 2, 'COMMA')}">0,00</td>
+        </tr>
+    </table>
+
+    <dl>
+        <th:block th:if="${sale.hasDiscount()}">
+            <div><dt>Subtotal</dt><dd th:text="${'R$ ' + #numbers.formatDecimal(sale.subtotalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</dd></div>
+            <div><dt>Desconto</dt><dd th:text="${'− R$ ' + #numbers.formatDecimal(sale.discountAmount, 1, 'POINT', 2, 'COMMA')}">− R$ 0,00</dd></div>
+        </th:block>
+        <div class="total"><dt>Total</dt><dd th:text="${'R$ ' + #numbers.formatDecimal(sale.totalAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</dd></div>
+        <div th:if="${sale.paymentMethod}"><dt>Pagamento</dt><dd th:text="${sale.paymentMethod.label}">Pix</dd></div>
+        <div th:if="${sale.amountReceived}"><dt>Recebido</dt><dd th:text="${'R$ ' + #numbers.formatDecimal(sale.amountReceived, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</dd></div>
+        <div th:if="${sale.changeAmount}"><dt>Troco</dt><dd th:text="${'R$ ' + #numbers.formatDecimal(sale.changeAmount, 1, 'POINT', 2, 'COMMA')}">R$ 0,00</dd></div>
+    </dl>
+
+    <footer>
+        <p>Obrigado pela preferência!</p>
+        <small>Não é documento fiscal.</small>
+    </footer>
+</main>
+</body>
+</html>

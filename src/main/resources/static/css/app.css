@@ -1066,3 +1066,6 @@ a.rows__main:hover strong { color: var(--primary); }
 @media (max-width: 720px) {
   .contact-card { grid-template-columns: 1fr; }
 }
+
+/* WhatsApp: verde da marca sobre o botão escuro */
+.whatsapp-button { color: #25d366 !important; }

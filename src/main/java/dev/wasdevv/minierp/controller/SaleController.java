@@ -6,6 +6,7 @@ import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Sale;
 import dev.wasdevv.minierp.repository.CustomerRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
+import dev.wasdevv.minierp.service.SaleReceipt;
 import dev.wasdevv.minierp.service.SaleService;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -42,11 +43,14 @@ public class SaleController {
     private final SaleService service;
     private final ProductRepository products;
     private final CustomerRepository customers;
+    private final SaleReceipt receipt;
 
-    public SaleController(SaleService service, ProductRepository products, CustomerRepository customers) {
+    public SaleController(SaleService service, ProductRepository products, CustomerRepository customers,
+                          SaleReceipt receipt) {
         this.service = service;
         this.products = products;
         this.customers = customers;
+        this.receipt = receipt;
     }
 
     @GetMapping
@@ -106,8 +110,20 @@ public class SaleController {
 
     @GetMapping("/{id}")
     public String show(@PathVariable Long id, Model model) {
-        model.addAttribute("sale", service.get(id));
+        Sale sale = service.get(id);
+        model.addAttribute("sale", sale);
+        model.addAttribute("whatsAppUrl", receipt.whatsAppUrl(sale));
         return "sales/show";
+    }
+
+    /** A printable receipt (80 mm wide, or "Salvar como PDF" in the print dialog). */
+    @GetMapping("/{id}/receipt")
+    public String receipt(@PathVariable Long id, Model model) {
+        Sale sale = service.get(id);
+        model.addAttribute("sale", sale);
+        model.addAttribute("storeName", receipt.storeName());
+        model.addAttribute("whatsAppUrl", receipt.whatsAppUrl(sale));
+        return "sales/receipt";
     }
 
     /** Type mismatches ("abc" as a quantity) arrive here before the service sees the form. */
