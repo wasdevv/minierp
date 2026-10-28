@@ -124,7 +124,9 @@ src/
 - `id`: identificador.
 - `customer_id`: cliente associado; vazio para consumidor final.
 - `sale_date`: data e hora da venda.
-- `total_amount`: total calculado pelo backend.
+- `subtotal_amount`, `discount_amount` e `total_amount`: soma dos itens, desconto (em R$ ou %, nunca maior que o subtotal) e total pago; o banco confere `total = subtotal - desconto`.
+- `payment_method`: Pix, dinheiro, cartão de débito, cartão de crédito ou fiado (fiado exige cliente). Vendas anteriores a isso ficam como "não informado".
+- `amount_received` e `change_amount`: em dinheiro, o valor recebido e o troco, quando informados.
 - `status`: `CONFIRMED` ou `CANCELLED` (`V5__add_sale_cancellation.sql`), com `cancelled_at` e `cancel_reason`. A venda nasce confirmada, nunca é editada nem excluída, e pode ser cancelada uma vez.
 
 ### `sale_items` (implementado em `V3__create_sales.sql`)

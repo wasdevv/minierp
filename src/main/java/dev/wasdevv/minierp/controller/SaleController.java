@@ -2,10 +2,13 @@ package dev.wasdevv.minierp.controller;
 
 import dev.wasdevv.minierp.dto.SaleForm;
 import dev.wasdevv.minierp.exception.SaleRejectedException;
+import dev.wasdevv.minierp.model.PaymentMethod;
 import dev.wasdevv.minierp.model.Sale;
 import dev.wasdevv.minierp.repository.CustomerRepository;
 import dev.wasdevv.minierp.repository.ProductRepository;
 import dev.wasdevv.minierp.service.SaleService;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -114,7 +117,12 @@ public class SaleController {
                         : "escolha um produto da lista";
                 return "Item " + (Integer.parseInt(row.group(1)) + 1) + ": " + field + ".";
             }
-            return "Escolha um cliente da lista.";
+            return switch (error.getField()) {
+                case "discountValue" -> "Informe o desconto como número (ex.: 5 ou 5.50).";
+                case "amountReceived" -> "Informe o valor recebido como número (ex.: 50 ou 50.00).";
+                case "paymentMethod" -> "Escolha uma forma de pagamento da lista.";
+                default -> "Escolha um cliente da lista.";
+            };
         }).distinct().toList();
     }
 
@@ -126,7 +134,12 @@ public class SaleController {
         model.addAttribute("problems", problems);
         model.addAttribute("products", products.findByActiveTrueOrderByNameAsc());
         model.addAttribute("customers", customers.findAllByOrderByNameAsc());
-        model.addAttribute("estimatedTotal", service.estimateTotal(form));
+        BigDecimal subtotal = service.estimateTotal(form);
+        BigDecimal discount = SaleService.discount(form, subtotal, new ArrayList<>());
+        model.addAttribute("estimatedSubtotal", subtotal);
+        model.addAttribute("estimatedDiscount", discount);
+        model.addAttribute("estimatedTotal", subtotal.subtract(discount));
+        model.addAttribute("paymentMethods", PaymentMethod.values());
         return FORM;
     }
 }

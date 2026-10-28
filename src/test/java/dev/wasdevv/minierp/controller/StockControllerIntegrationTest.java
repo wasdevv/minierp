@@ -82,6 +82,25 @@ class StockControllerIntegrationTest extends IntegrationTest {
     }
 
     @Test
+    void limitsQuantitiesAndReasonLength() throws Exception {
+        long id = createProduct("CN-01", 10);
+        String pid = String.valueOf(id);
+
+        mvc.perform(post("/stock/receipts").param("productId", pid).param("quantity", "1000001"))
+                .andExpect(flash().attribute("alert", "A entrada pode ter no máximo 1000000 unidades."));
+        mvc.perform(post("/stock/receipts").param("productId", pid).param("quantity", "1").param("reason", "x".repeat(201)))
+                .andExpect(flash().attribute("alert", "O motivo pode ter no máximo 200 caracteres."));
+        mvc.perform(post("/stock/adjustments").param("productId", pid).param("counted", "1000001").param("reason", "x"))
+                .andExpect(flash().attribute("alert", "A contagem pode ter no máximo 1000000 unidades."));
+        mvc.perform(post("/stock/adjustments").param("counted", "1").param("reason", "x"))
+                .andExpect(redirectedUrl("/stock"))
+                .andExpect(flash().attribute("alert", "Escolha o produto do ajuste."));
+        jdbc.update("update products set stock_quantity = ? where id = ?", Integer.MAX_VALUE - 5, id);
+        mvc.perform(post("/stock/receipts").param("productId", pid).param("quantity", "10"))
+                .andExpect(flash().attribute("alert", "O estoque resultante ficaria grande demais."));
+    }
+
+    @Test
     void adjustmentNeedsAReasonAndAChange() throws Exception {
         long id = createProduct("CN-01", 10);
 
@@ -101,7 +120,7 @@ class StockControllerIntegrationTest extends IntegrationTest {
     @Test
     void saleAndCancellationAreInTheLedgerWithTheSale() throws Exception {
         long id = createProduct("CN-01", 10);
-        String location = mvc.perform(post("/sales").param("items[0].productId", String.valueOf(id))
+        String location = mvc.perform(post("/sales").param("paymentMethod", "PIX").param("items[0].productId", String.valueOf(id))
                 .param("items[0].quantity", "4")).andReturn().getResponse().getHeader("Location");
         long saleId = Long.parseLong(location.substring("/sales/".length()));
         mvc.perform(post("/sales/{id}/cancel", saleId).param("reason", "Cliente desistiu"));
@@ -118,7 +137,7 @@ class StockControllerIntegrationTest extends IntegrationTest {
     void ledgerAlwaysEndsAtTheCurrentStock() throws Exception {
         long id = createProduct("CN-01", 10);
         mvc.perform(post("/stock/receipts").param("productId", String.valueOf(id)).param("quantity", "5"));
-        mvc.perform(post("/sales").param("items[0].productId", String.valueOf(id)).param("items[0].quantity", "3"));
+        mvc.perform(post("/sales").param("paymentMethod", "PIX").param("items[0].productId", String.valueOf(id)).param("items[0].quantity", "3"));
         mvc.perform(post("/stock/adjustments").param("productId", String.valueOf(id)).param("counted", "11")
                 .param("reason", "Perda"));
 

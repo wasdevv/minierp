@@ -133,8 +133,8 @@ class DashboardIntegrationTest extends IntegrationTest {
         BigDecimal total = price.multiply(BigDecimal.valueOf(quantity));
         OffsetDateTime when = localTime.atZone(ZONE).toOffsetDateTime();
         long id = jdbc.queryForObject("""
-                insert into sales (sale_date, total_amount, status, cancelled_at, cancel_reason)
-                values (?, ?, ?, ?, ?) returning id""", Long.class, when, total,
+                insert into sales (sale_date, subtotal_amount, total_amount, status, cancelled_at, cancel_reason)
+                values (?, ?, ?, ?, ?, ?) returning id""", Long.class, when, total, total,
                 cancelled ? "CANCELLED" : "CONFIRMED", cancelled ? when : null, cancelled ? "teste" : null);
         jdbc.update("insert into sale_items (sale_id, product_id, quantity, unit_price, subtotal) values (?, ?, ?, ?, ?)",
                 id, productId, quantity, price, total);

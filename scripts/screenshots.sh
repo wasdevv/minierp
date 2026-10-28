@@ -59,9 +59,16 @@ Ana Ribeiro|ana.ribeiro@exemplo.com|123.456.789-09
 Colégio Modelo|financeiro@colegio.exemplo|
 DATA
 
-# customer id|product id:quantity ...; customer 0 is a walk-in sale.
+# customer id|product id:quantity ...; customer 0 is a walk-in sale. Payment methods rotate; fiado only
+# goes to registered customers, and every fourth sale gets a 5% discount.
+methods=(PIX CASH DEBIT_CARD CREDIT_CARD ON_ACCOUNT)
+n=0
 while read -r customer lines; do
-    args=(); i=0
+    method=${methods[$((n % 5))]}
+    [ "$method" = ON_ACCOUNT ] && [ "$customer" = 0 ] && method=PIX
+    args=(-d "paymentMethod=$method"); i=0
+    [ $((n % 4)) = 3 ] && args+=(-d "discountType=PERCENT" -d "discountValue=5")
+    n=$((n + 1))
     [ "$customer" != 0 ] && args+=(-d "customerId=$customer")
     for line in $lines; do
         args+=(-d "items[$i].productId=${line%%:*}" -d "items[$i].quantity=${line##*:}"); i=$((i + 1))
@@ -117,7 +124,7 @@ shot /customers customers.png 1280 720
 shot /sales sales.png 1280 1000
 shot /sales/2 sale-detail.png 1280 720
 # The filled sale form only exists as a POST response.
-curl -sf -b "$JAR" -X POST "$BASE/sales" -d "_csrf=$CSRF&customerId=1&addItem=1" \
+curl -sf -b "$JAR" -X POST "$BASE/sales" -d "_csrf=$CSRF&customerId=1&addItem=1&paymentMethod=CASH&discountValue=5&amountReceived=70" \
     -d "items[0].productId=2&items[0].quantity=3" -d "items[1].productId=1&items[1].quantity=10" \
     | sed "s|<head>|<head><base href=\"$BASE/\">|" > "$WORK/sale-form.html"
 "$CHROME" --headless --no-sandbox --hide-scrollbars --force-device-scale-factor=1 --virtual-time-budget=3000 \

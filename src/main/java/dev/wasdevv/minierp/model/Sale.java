@@ -37,8 +37,28 @@ public class Sale {
     @Column(name = "sale_date", nullable = false, updatable = false)
     private OffsetDateTime saleDate;
 
+    /** Sum of the items, before discount. */
+    @Column(name = "subtotal_amount", nullable = false, precision = 12, scale = 2, updatable = false)
+    private BigDecimal subtotalAmount;
+
+    @Column(name = "discount_amount", nullable = false, precision = 12, scale = 2, updatable = false)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    /** What the customer pays: subtotal minus discount. Reports and the dashboard read this. */
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2, updatable = false)
     private BigDecimal totalAmount;
+
+    /** {@code null} only for sales recorded before payment methods existed. */
+    @Enumerated(EnumType.STRING)
+    @Column(name = "payment_method", length = 20, updatable = false)
+    private PaymentMethod paymentMethod;
+
+    /** Cash handed over, when the operator typed it; {@link #changeAmount} is what went back. */
+    @Column(name = "amount_received", precision = 12, scale = 2, updatable = false)
+    private BigDecimal amountReceived;
+
+    @Column(name = "change_amount", precision = 12, scale = 2, updatable = false)
+    private BigDecimal changeAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -113,8 +133,42 @@ public class Sale {
         return totalAmount;
     }
 
-    public void setTotalAmount(BigDecimal totalAmount) {
-        this.totalAmount = totalAmount;
+
+    /** Sets subtotal, discount and total together, so they can never disagree. */
+    public void price(BigDecimal subtotal, BigDecimal discount) {
+        this.subtotalAmount = subtotal;
+        this.discountAmount = discount;
+        this.totalAmount = subtotal.subtract(discount);
+    }
+
+    public void pay(PaymentMethod method, BigDecimal received) {
+        this.paymentMethod = method;
+        this.amountReceived = received;
+        this.changeAmount = received == null ? null : received.subtract(totalAmount);
+    }
+
+    public BigDecimal getSubtotalAmount() {
+        return subtotalAmount;
+    }
+
+    public BigDecimal getDiscountAmount() {
+        return discountAmount;
+    }
+
+    public boolean hasDiscount() {
+        return discountAmount.signum() > 0;
+    }
+
+    public PaymentMethod getPaymentMethod() {
+        return paymentMethod;
+    }
+
+    public BigDecimal getAmountReceived() {
+        return amountReceived;
+    }
+
+    public BigDecimal getChangeAmount() {
+        return changeAmount;
     }
 
     public List<SaleItem> getItems() {
