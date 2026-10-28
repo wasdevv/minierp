@@ -30,5 +30,9 @@ server:
     include-message: never
 
 minierp:
+  admin:
+    username: ${MINIERP_ADMIN_USER:admin}
+    # Required, at least 8 characters; the app does not start without it.
+    password: ${MINIERP_ADMIN_PASSWORD:}
   # Zone used to show dates; they are stored as instants (TIMESTAMPTZ).
   time-zone: ${MINIERP_TIME_ZONE:America/Sao_Paulo}

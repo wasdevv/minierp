@@ -2,7 +2,15 @@
 
 O Mini ERP é uma aplicação web server-side: cada endpoint devolve uma página Thymeleaf, um redirecionamento ou, no caso do relatório, um PDF. Não há API JSON. Formulários usam `POST` com `application/x-www-form-urlencoded`. Depois de gravar, a resposta é um redirecionamento (POST/redirect/GET), e as mensagens de sucesso ou erro chegam como atributos flash (`notice` em verde, `alert` em vermelho).
 
-> **Sem autenticação e sem proteção CSRF.** É um projeto demonstrativo para uso local. Antes de expor em ambiente compartilhado, é preciso adicionar Spring Security com login e token CSRF nos formulários. A seção "Segurança e boas práticas" do README trata disso.
+> **Todas as rotas abaixo exigem login**: sem sessão, a resposta é 302 para `/login`. Todo `POST` precisa do token CSRF (`_csrf`), que o Thymeleaf põe sozinho nos formulários; sem ele, 403. Só `/login`, `/css/**` e `/error` são públicos.
+
+### Sessão
+
+| Método | Caminho | Parâmetros | Resposta |
+|---|---|---|---|
+| GET | `/login` | `error`, `logout` (mensagens) | Página de login |
+| POST | `/login` | `username`, `password`, `_csrf` | Sucesso: a página pedida antes do login, ou `/`. Erro: `/login?error` |
+| POST | `/logout` | `_csrf` | Encerra a sessão e redireciona para `/login?logout` |
 
 ## Endpoints
 

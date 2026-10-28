@@ -221,9 +221,12 @@ No PowerShell, por exemplo:
 $env:DB_URL="jdbc:postgresql://localhost:5432/mini_erp"
 $env:DB_USERNAME="mini_erp"
 $env:DB_PASSWORD="sua_senha_local"
+$env:MINIERP_ADMIN_PASSWORD="uma_senha_de_8+_caracteres"
 ```
 
 Não versione senhas, tokens, arquivos `.env` reais ou credenciais de qualquer ambiente.
+
+Todas as páginas exigem login. A conta de operador vem de `MINIERP_ADMIN_USER` (padrão `admin`) e `MINIERP_ADMIN_PASSWORD`, que é **obrigatória** e precisa ter no mínimo 8 caracteres: sem ela a aplicação não sobe, em vez de gerar uma senha e escrevê-la no log.
 
 ### 4. Executar
 
@@ -258,7 +261,7 @@ docker compose up -d db          # só o banco, para rodar ./mvnw na máquina
 
 - O banco `mini_erp` é criado pelo container. Na primeira subida do volume, `docker/postgres/init/` também cria o `mini_erp_test`, usado pelos testes de integração:
   `MINIERP_TEST_JDBC_URL=jdbc:postgresql://localhost:5432/mini_erp_test MINIERP_TEST_DB_USER=mini_erp MINIERP_TEST_DB_PASSWORD=mini_erp_local ./mvnw verify`
-- A senha padrão (`mini_erp_local`) existe só para o ambiente local funcionar sem configuração. Para trocar, crie um `.env` (ignorado pelo git) com `DB_PASSWORD=...`; `DB_PORT` e `SERVER_PORT` mudam as portas expostas.
+- As senhas padrão (`mini_erp_local` do banco e `admin_local` do login `admin`) existem só para o ambiente local funcionar sem configuração. Para trocar, crie um `.env` (ignorado pelo git) com `DB_PASSWORD=...` e `ADMIN_PASSWORD=...`; `DB_PORT` e `SERVER_PORT` mudam as portas expostas.
 - A imagem (`Dockerfile`) compila com o Maven Wrapper em JDK 21 e roda só com o JRE, com usuário sem privilégios. Os testes não rodam no build da imagem, porque precisam de banco.
 - Os dados ficam no volume `db-data`; `docker compose down -v` apaga tudo.
 
@@ -325,12 +328,12 @@ Rotas, parâmetros e respostas, o fluxo de venda com baixa de estoque (com diagr
 
 ## Segurança e boas práticas
 
-> Estado atual: **não há autenticação nem proteção CSRF**. A aplicação é para uso local; o primeiro item abaixo é pré-requisito para qualquer ambiente compartilhado.
+> Estado atual: login obrigatório (Spring Security, uma conta de operador por variável de ambiente, senha guardada com BCrypt) e token CSRF em todos os formulários `POST`. Ainda não há perfis de acesso, troca de senha pela tela nem limite de tentativas de login; para um ambiente com várias pessoas, o próximo passo é usuários no banco com perfis.
 
 - Nunca commitar segredos ou dados reais de clientes.
 - Validar e normalizar os dados de entrada.
 - Usar consultas parametrizadas e os mecanismos do Spring Data.
-- Aplicar autenticação e autorização antes de disponibilizar dados comerciais em ambientes compartilhados.
+- Autenticação aplicada a todas as páginas; autorização por perfil ainda não existe (uma única conta de operador).
 - Não confiar em totais calculados pelo frontend.
 - Configurar logs sem senhas, tokens ou dados pessoais desnecessários.
 - Tratar erros sem retornar stack traces ao usuário.

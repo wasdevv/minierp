@@ -31,6 +31,9 @@ services:
       DB_USERNAME: mini_erp
       DB_PASSWORD: ${DB_PASSWORD:-mini_erp_local}
       MINIERP_TIME_ZONE: ${MINIERP_TIME_ZONE:-America/Sao_Paulo}
+      # Login: user "admin" (MINIERP_ADMIN_USER) with this password. Local default only, like DB_PASSWORD.
+      MINIERP_ADMIN_USER: ${ADMIN_USER:-admin}
+      MINIERP_ADMIN_PASSWORD: ${ADMIN_PASSWORD:-admin_local}
     ports:
       - "${SERVER_PORT:-8080}:8080"
 

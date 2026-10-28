@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head th:fragment="head(title)">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,6 +15,10 @@
         <a th:href="@{/sales}" th:attr="aria-current=${section == 'sales'} ? 'page' : null">Vendas</a>
         <a th:href="@{/reports/sales}" th:attr="aria-current=${section == 'reports'} ? 'page' : null">Relatórios</a>
     </nav>
+    <form class="session" sec:authorize="isAuthenticated()" method="post" th:action="@{/logout}">
+        <span class="session__user" sec:authentication="name">admin</span>
+        <button type="submit">Sair</button>
+    </form>
 </header>
 <th:block th:fragment="notice">
     <div th:if="${notice}" class="notice" role="status" th:text="${notice}"></div>

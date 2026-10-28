@@ -57,22 +57,32 @@ jobs:
       - name: Wait for the app
         run: |
           for i in $(seq 90); do
-            curl -sf -o /dev/null http://localhost:8080/products && exit 0
+            curl -sf -o /dev/null http://localhost:8080/login && exit 0
             sleep 2
           done
           echo "app did not start"; exit 1
+      - name: Anonymous visitors are sent to the login page
+        run: |
+          curl -s -o /dev/null -w '%{http_code} %{redirect_url}\n' http://localhost:8080/products | tee status.txt
+          grep -q '^302 http://localhost:8080/login$' status.txt
       - name: Smoke path
         run: |
           set -euo pipefail
-          curl -sf -X POST http://localhost:8080/products \
-            -d 'name=Caneta&sku=CN-01&price=2.50&stockQuantity=10&active=true' -o /dev/null
-          curl -sf -X POST http://localhost:8080/sales \
-            -d 'items[0].productId=1&items[0].quantity=3' -o /dev/null -w '%{redirect_url}\n' | grep -q '/sales/1$'
-          curl -sf http://localhost:8080/products | grep -q '>7<'
+          source scripts/session.sh
+          login http://localhost:8080 admin admin_local
+          post /products -d 'name=Caneta&sku=CN-01&price=2.50&stockQuantity=10&active=true' > /dev/null
+          post /sales -d 'items[0].productId=1&items[0].quantity=3' | grep -q '/sales/1$'
+          page /products | grep -q '>7<'
           today=$(TZ=America/Sao_Paulo date +%F)
-          curl -sf -o report.pdf "http://localhost:8080/reports/sales.pdf?from=$today&to=$today"
+          curl -sf -b "$JAR" -o report.pdf "http://localhost:8080/reports/sales.pdf?from=$today&to=$today"
           head -c 5 report.pdf | grep -q '%PDF-'
           docker compose exec -T db psql -U mini_erp -tAc "select 1 from pg_database where datname = 'mini_erp_test'" | grep -q 1
+      - name: Without a CSRF token a logged-in POST is refused
+        run: |
+          source scripts/session.sh
+          login http://localhost:8080 admin admin_local
+          code=$(curl -s -b "$JAR" -o /dev/null -w '%{http_code}' -X POST http://localhost:8080/products -d 'name=X&sku=X-1&price=1&stockQuantity=1')
+          echo "status: $code"; test "$code" = 403
       - if: failure()
         run: docker compose logs --no-color | tail -300
       - if: always()
