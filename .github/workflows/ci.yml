@@ -71,8 +71,8 @@ jobs:
           source scripts/session.sh
           login http://localhost:8080 admin admin_local
           post /products -d 'name=Caneta&sku=CN-01&price=2.50&stockQuantity=10&active=true' > /dev/null
-          post /sales -d 'items[0].productId=1&items[0].quantity=3' | grep -q '/sales/1$'
-          page /products | grep -q '>7<'
+          [[ $(post /sales -d 'items[0].productId=1&items[0].quantity=3') == */sales/1 ]]
+          [[ $(page /products) == *'>7<'* ]]
           today=$(TZ=America/Sao_Paulo date +%F)
           curl -sf -b "$JAR" -o report.pdf "http://localhost:8080/reports/sales.pdf?from=$today&to=$today"
           head -c 5 report.pdf | grep -q '%PDF-'
