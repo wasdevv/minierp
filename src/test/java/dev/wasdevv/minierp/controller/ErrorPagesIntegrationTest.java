@@ -55,6 +55,7 @@ class ErrorPagesIntegrationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
         assertThat(response.getBody()).contains("Não encontrado").doesNotContain("Whitelabel");
+        assertThat(response.getBody()).contains("Voltar ao início").doesNotContain("Voltar para produtos");
     }
 
     @Test

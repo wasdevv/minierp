@@ -1,6 +1,7 @@
 package dev.wasdevv.minierp.service;
 
 import dev.wasdevv.minierp.dto.CustomerForm;
+import dev.wasdevv.minierp.dto.CustomerHistory;
 import dev.wasdevv.minierp.exception.DuplicateDocumentException;
 import dev.wasdevv.minierp.exception.InUseException;
 import dev.wasdevv.minierp.exception.ResourceNotFoundException;
@@ -8,6 +9,8 @@ import dev.wasdevv.minierp.model.Customer;
 import dev.wasdevv.minierp.model.TaxId;
 import dev.wasdevv.minierp.repository.CustomerRepository;
 import dev.wasdevv.minierp.repository.SaleRepository;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +37,15 @@ public class CustomerService {
         }
         String document = TaxId.normalize(query);
         return customers.search(SearchTerms.escapeLike(query.strip()), document == null ? "" : document, pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public CustomerHistory history(Long id, Pageable pageable) {
+        Customer customer = get(id);
+        Object[] totals = sales.customerTotals(id).getFirst();
+        return new CustomerHistory(customer, sales.findByCustomerIdOrderBySaleDateDescIdDesc(id, pageable),
+                ((Number) totals[0]).longValue(), (BigDecimal) totals[1], (BigDecimal) totals[2],
+                (OffsetDateTime) totals[3]);
     }
 
     @Transactional(readOnly = true)

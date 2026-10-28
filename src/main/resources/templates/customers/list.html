@@ -31,16 +31,20 @@
         <tr>
             <th>CPF/CNPJ</th>
             <th>Nome</th>
-            <th>E-mail</th>
+            <th>Contato</th>
             <th class="num"><span class="visually-hidden">Ações</span></th>
         </tr>
         </thead>
         <tbody>
         <tr th:each="c : ${page.content}">
             <td th:text="${c.maskedDocument} ?: '—'">***.456.789-**</td>
-            <td th:text="${c.name}">Cliente</td>
-            <td th:text="${c.email} ?: '—'">cliente@exemplo.com</td>
+            <td><a class="row-link" th:href="@{/customers/{id}(id=${c.id})}" th:text="${c.name}">Cliente</a></td>
+            <td>
+                <span th:text="${c.email} ?: '—'">cliente@exemplo.com</span>
+                <span th:if="${c.phone}" class="muted contact-phone" th:text="${c.formattedPhone}">(11) 98765-4321</span>
+            </td>
             <td class="actions">
+                <a th:href="@{/customers/{id}(id=${c.id})}">Ficha</a>
                 <a th:href="@{/customers/{id}/edit(id=${c.id})}">Editar</a>
                 <form method="post" th:action="@{/customers/{id}/delete(id=${c.id})}"
                       onsubmit="return confirm('Excluir este cliente?');">

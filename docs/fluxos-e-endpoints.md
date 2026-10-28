@@ -41,10 +41,11 @@ O estoque de um produto só muda por estoque inicial (no cadastro), entrada, aju
 | Método | Caminho | Parâmetros | Resposta |
 |---|---|---|---|
 | GET | `/customers` | `q` (nome ou e-mail parciais, ou CPF/CNPJ **completo**), `page` | Lista paginada, documento mascarado |
+| GET | `/customers/{id}` | `page` | Ficha: contato (e-mail, telefone com link de WhatsApp, documento mascarado), total comprado, compras, ticket médio, total no fiado e histórico de compras (canceladas inclusas). 404 se não existir |
 | GET | `/customers/new` | | Formulário vazio |
-| POST | `/customers` | `name`, `email`, `document` | Sucesso: redireciona para `/customers`. Erro: formulário com mensagens |
+| POST | `/customers` | `name`, `email`, `phone`, `document` | Sucesso: redireciona para `/customers`. Erro: formulário com mensagens |
 | GET | `/customers/{id}/edit` | | Formulário com o documento formatado. 404 se não existir |
-| POST | `/customers/{id}` | `name`, `email`, `document` | Como o cadastro |
+| POST | `/customers/{id}` | `name`, `email`, `phone`, `document` | Sucesso: volta para a ficha. Erro: formulário com mensagens |
 | POST | `/customers/{id}/delete` | | Redireciona para `/customers`. Cliente com vendas: aviso, nada é excluído |
 
 ### Vendas

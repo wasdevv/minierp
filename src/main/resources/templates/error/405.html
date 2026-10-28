@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Não encontrado')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav(null)}"></header>
+<main>
+    <h1>Página não encontrada</h1>
+    <p>O registro ou a página que você procurou não existe.</p>
+    <a class="button" th:href="@{/}">Voltar ao início</a>
+</main>
+</body>
+</html>

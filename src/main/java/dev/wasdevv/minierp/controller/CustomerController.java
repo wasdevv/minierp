@@ -66,6 +66,13 @@ public class CustomerController {
         return "redirect:/customers";
     }
 
+    @GetMapping("/{id}")
+    public String show(@PathVariable Long id, @PageableDefault(size = 10) Pageable pageable, Model model) {
+        model.addAttribute("history", service.history(id,
+                PageRequest.of(pageable.getPageNumber(), pageable.getPageSize())));
+        return "customers/show";
+    }
+
     @GetMapping("/{id}/edit")
     public String edit(@PathVariable Long id, Model model) {
         model.addAttribute("customer", CustomerForm.from(service.get(id)));
@@ -88,7 +95,7 @@ public class CustomerController {
             return FORM;
         }
         redirect.addFlashAttribute("notice", "Cliente atualizado.");
-        return "redirect:/customers";
+        return "redirect:/customers/" + id;
     }
 
     @PostMapping("/{id}/delete")

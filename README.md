@@ -117,6 +117,7 @@ src/
 - `id`: identificador.
 - `name`: nome do cliente (obrigatório).
 - `email`: opcional, validado e gravado em minúsculas.
+- `phone`: telefone/WhatsApp opcional (`V8__add_customer_phone.sql`), com DDD, gravado só com dígitos (10 fixo, 11 celular); aceita "+55", parênteses e traços na digitação.
 - `document`: CPF ou CNPJ opcional, com dígitos verificadores conferidos, gravado só com números e único quando informado. A listagem mostra o documento mascarado (`***.982.247-**`), e a busca só o encontra pelo número completo, para não permitir enumerar documentos por fragmentos.
 - `created_at` e `updated_at`: datas de auditoria.
 
