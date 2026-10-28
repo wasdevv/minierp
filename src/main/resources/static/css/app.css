@@ -447,6 +447,7 @@ main > h1 {
 .form > label:first-of-type { margin-top: 0; }
 
 .form input[type="text"],
+.form input[type="email"],
 .form input[type="number"],
 .form textarea {
   width: 100%;

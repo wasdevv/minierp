@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head(${customerId} == null ? 'Novo cliente' : 'Editar cliente')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: nav('customers')}"></header>
+<main>
+    <h1 th:text="${customerId} == null ? 'Novo cliente' : 'Editar cliente'">Novo cliente</h1>
+
+    <form class="form" method="post" th:object="${customer}"
+          th:action="${customerId} == null ? @{/customers} : @{/customers/{id}(id=${customerId})}" novalidate>
+        <div class="errors" th:if="${#fields.hasErrors('*')}" role="alert">
+            Corrija os campos destacados.
+        </div>
+
+        <label for="name">Nome</label>
+        <input id="name" type="text" th:field="*{name}" maxlength="120" required th:errorclass="invalid">
+        <p class="field-error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></p>
+
+        <label for="email">E-mail <span class="muted">(opcional)</span></label>
+        <input id="email" type="email" th:field="*{email}" maxlength="254" placeholder="cliente@exemplo.com" th:errorclass="invalid">
+        <p class="field-error" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></p>
+
+        <label for="document">CPF ou CNPJ <span class="muted">(opcional)</span></label>
+        <input id="document" type="text" th:field="*{document}" maxlength="18" inputmode="numeric"
+               placeholder="000.000.000-00" th:errorclass="invalid">
+        <p class="field-error" th:if="${#fields.hasErrors('document')}" th:errors="*{document}"></p>
+
+        <div class="form-actions">
+            <button type="submit">Salvar</button>
+            <a th:href="@{/customers}">Cancelar</a>
+        </div>
+    </form>
+</main>
+</body>
+</html>
